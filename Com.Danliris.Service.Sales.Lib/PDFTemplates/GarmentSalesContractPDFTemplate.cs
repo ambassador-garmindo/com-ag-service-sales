@@ -5,6 +5,7 @@ using Com.Danliris.Service.Sales.Lib.ViewModels.GarmentSalesContractViewModels;
 using Com.Danliris.Service.Sales.Lib.ViewModels.IntegrationViewModel;
 using iTextSharp.text;
 using iTextSharp.text.pdf;
+using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
 using System.Globalization;
@@ -15,7 +16,19 @@ namespace Com.Danliris.Service.Sales.Lib.PDFTemplates
 {
     public class GarmentSalesContractPDFTemplate
     {
-        public MemoryStream GeneratePdfTemplate(GarmentSalesContractViewModel viewModel, IGarmentSalesContract facade, int timeoffset, Dictionary<string, object> buyer, Dictionary<string, object> bank)
+        private string GetCurrencyValue(double value, bool isDollar)
+        {
+            if (isDollar)
+            {
+                return Number.ToDollar(value);
+            }
+            else
+            {
+                return Number.ToRupiah(value);
+            }
+        }
+
+        public MemoryStream GeneratePdfTemplate(GarmentSalesContractViewModel viewModel, IGarmentSalesContract facade, int timeoffset, Dictionary<string, object> buyer, Dictionary<string, object> bank, string rate)
         {
             Font header_font = FontFactory.GetFont(BaseFont.HELVETICA, BaseFont.CP1250, BaseFont.NOT_EMBEDDED, 18);
             Font normal_font = FontFactory.GetFont(BaseFont.HELVETICA, BaseFont.CP1250, BaseFont.NOT_EMBEDDED, 7);
@@ -24,6 +37,7 @@ namespace Com.Danliris.Service.Sales.Lib.PDFTemplates
             Document document = new Document(PageSize.A4, 40, 40, 120, 40);
             MemoryStream stream = new MemoryStream();
             PdfWriter writer = PdfWriter.GetInstance(document, stream);
+            
 
             writer.PageEvent = new GarmentSalesContractPDFTemplatePageEvent();
 
@@ -31,12 +45,17 @@ namespace Com.Danliris.Service.Sales.Lib.PDFTemplates
             document.Open();
 
 
+
+            bool isDollar = rate.Equals("1");
+
+
             #region Header
 
-            string codeNoString = "FM-00-PJ-02-001/R1";
-            Paragraph codeNo = new Paragraph(codeNoString, bold_font) { Alignment = Element.ALIGN_RIGHT };
-            codeNo.SpacingAfter = 10f;
-            document.Add(codeNo);
+            //string codeNoString = "FM-00-PJ-02-001/R1";
+            //Paragraph codeNo = new Paragraph(codeNoString, bold_font) { Alignment = Element.ALIGN_RIGHT };
+            //codeNo.SpacingAfter = 10f;S
+            //document.Add(codeNo);
+
 
             PdfPTable tableHeader = new PdfPTable(4);
             tableHeader.SetWidths(new float[] { 1f,0.2f, 3f, 3f });
@@ -48,6 +67,7 @@ namespace Com.Danliris.Service.Sales.Lib.PDFTemplates
             tableHeader.AddCell(cellHeaderContentLeft);
             cellHeaderContentLeft.Phrase=new Phrase(viewModel.RONumber, normal_font);
             tableHeader.AddCell(cellHeaderContentLeft);
+            
 
             DateTime date = viewModel.CreatedUtc.AddHours(timeoffset);
             PdfPCell cellHeaderContentRight = new PdfPCell() { Border = Rectangle.NO_BORDER, HorizontalAlignment = Element.ALIGN_RIGHT };
@@ -93,6 +113,7 @@ namespace Com.Danliris.Service.Sales.Lib.PDFTemplates
             document.Add(scNo);
             #endregion
 
+            
 
             #region body
             PdfPTable tableBody = new PdfPTable(3);
@@ -141,7 +162,7 @@ namespace Com.Danliris.Service.Sales.Lib.PDFTemplates
             }
             else
             {
-                bodyContentLeft.Phrase = new Phrase(viewModel.FOB + " US$ " + string.Format("{0:n2}", viewModel.Price) + " /" + viewModel.Uom.Unit, normal_font);
+                bodyContentLeft.Phrase = new Phrase(viewModel.FOB +" "+ string.Format("{0:n2}", GetCurrencyValue(viewModel.Price, isDollar)) + " /" + viewModel.Uom.Unit, normal_font);
                 tableBody.AddCell(bodyContentLeft);
             }
             
@@ -154,7 +175,7 @@ namespace Com.Danliris.Service.Sales.Lib.PDFTemplates
                     tableBody.AddCell(bodyContentLeft);
                     bodyContentLeft.Phrase = new Phrase("", normal_font);
                     tableBody.AddCell(bodyContentLeft);
-                    bodyContentLeft.Phrase = new Phrase( item.Description + "  : " + item.Quantity + " "+ viewModel.Uom.Unit + " | US$ " + string.Format("{0:n2}", item.Price) + " / " + viewModel.Uom.Unit, normal_font);
+                    bodyContentLeft.Phrase = new Phrase( item.Description + "  : " + item.Quantity + " "+ viewModel.Uom.Unit + " | " + string.Format("{0:n2}", GetCurrencyValue(item.Price, isDollar)) + " / " + viewModel.Uom.Unit, normal_font);
                     tableBody.AddCell(bodyContentLeft);
 
                 }
@@ -164,7 +185,7 @@ namespace Com.Danliris.Service.Sales.Lib.PDFTemplates
             tableBody.AddCell(bodyContentLeft);
             bodyContentLeft.Phrase = new Phrase(": ", normal_font);
             tableBody.AddCell(bodyContentLeft);
-            bodyContentLeft.Phrase = new Phrase("US$ " + string.Format("{0:n2}",viewModel.Amount) , normal_font);
+            bodyContentLeft.Phrase = new Phrase(string.Format("{0:n2}",GetCurrencyValue(viewModel.Amount,isDollar)) , normal_font);
             tableBody.AddCell(bodyContentLeft);
             bodyContentLeft.Phrase = new Phrase("Shipment/Delivery", normal_font);
             tableBody.AddCell(bodyContentLeft);
@@ -194,13 +215,13 @@ namespace Com.Danliris.Service.Sales.Lib.PDFTemplates
             tableBody.AddCell(bodyContentLeft);
             bodyContentLeft.Phrase = new Phrase(": ", normal_font);
             tableBody.AddCell(bodyContentLeft);
-            bodyContentLeft.Phrase = new Phrase("PT.DAN LIRIS", normal_font);
+            bodyContentLeft.Phrase = new Phrase("PT.AMBASSADOR GARMINDO", normal_font);
             tableBody.AddCell(bodyContentLeft);
             bodyContentLeft.Phrase = new Phrase("", normal_font);
             tableBody.AddCell(bodyContentLeft);
             bodyContentLeft.Phrase = new Phrase("", normal_font);
             tableBody.AddCell(bodyContentLeft);
-            bodyContentLeft.Phrase = new Phrase("ADDRESS : JL. MERAPI NO. 23, KELURAHAN BANARAN, KECAMATAN GROGOL \n                    KABUPATEN SUKOHARJO, JAWA TENGAH 57552, INDONESIA", normal_font);
+            bodyContentLeft.Phrase = new Phrase("ADDRESS : KELURAHAN BANARAN, KECAMATAN GROGOL, SUKOHARJO 57193 - INDONESIA", normal_font);
             tableBody.AddCell(bodyContentLeft);
             bodyContentLeft.Phrase = new Phrase("Bank Detail", normal_font);
             tableBody.AddCell(bodyContentLeft);
@@ -300,7 +321,7 @@ namespace Com.Danliris.Service.Sales.Lib.PDFTemplates
 
             cell_signatureLeft.Phrase = new Phrase("", normal_font);
             sign.AddCell(cell_signatureLeft);
-            cell_signatureRight.Phrase = new Phrase("PT. DAN LIRIS", normal_font);
+            cell_signatureRight.Phrase = new Phrase("PT. AMBASSADOR GARMINDO", normal_font);
             sign.AddCell(cell_signatureRight);
 
             cell_signatureLeft.Phrase = new Phrase("", normal_font);
@@ -377,7 +398,7 @@ namespace Com.Danliris.Service.Sales.Lib.PDFTemplates
 
                 cell_loc.Phrase = new Phrase("D.", normal_font);
                 LocList.AddCell(cell_loc);
-                cell_loc.Phrase = new Phrase(" BENEFICIARY      : PT. DAN LIRIS \n                                 ADDRESS    : JL. MERAPI No. 23, KELURAHAN BANARAN, KECAMATAN GROGOL \n                                                        KABUPATEN SUKOHARJO, JAWA TENGAH 57552, INDONESIA", normal_font);
+                cell_loc.Phrase = new Phrase(" BENEFICIARY      : PT. AMBASSADOR GARMINDO \n                                 ADDRESS    : KELURAHAN BANARAN, KECAMATAN GROGOL  \n                                                        SUKOHARJO 57193 - INDONESIA", normal_font);
                 LocList.AddCell(cell_loc);
 
 
@@ -563,9 +584,9 @@ namespace Com.Danliris.Service.Sales.Lib.PDFTemplates
             cb.AddImage(image, inlineImage: true);
 
             string[] headOffices = {
-                "Head Office : JL. MERAPI NO. 23, BANARAN, GROGOL, SUKOHARJO JAWA TENGAH 57552 - INDONESIA",
-                "TELP. 0271-740888, 714400 (HUNTING), FAX. : 0271-735222, 740777, PO BOX 166 SOLO 57100",
-                "Website : www.danliris.com",
+                "Head Office : Kelurahan Banaran, Kecamatan Grogol, Sukoharjo 57193 - INDONESIA",
+                "TELP. 0271-7652913, 714400, FAX. : 0271-735222, 740777, PO BOX 166 SOLO 57100",
+                "Website : www.ambassadorgarmindo.com",
             };
             for (int i = 0; i < headOffices.Length; i++)
             {
@@ -576,17 +597,17 @@ namespace Com.Danliris.Service.Sales.Lib.PDFTemplates
 
             #region RIGHT
 
-            byte[] imageByteIso = Convert.FromBase64String(Base64ImageStrings.ISO);
-            Image imageIso = Image.GetInstance(imageByteIso);
-            if (imageIso.Width > 80)
-            {
-                float percentage = 0.0f;
-                percentage = 80 / imageIso.Width;
-                imageIso.ScalePercent(percentage * 100);
-            }
-            imageIso.SetAbsolutePosition(width - imageIso.ScaledWidth - marginRight, height - imageIso.ScaledHeight - marginTop + 60);
-            cb.AddImage(imageIso, inlineImage: true);
-            cb.ShowTextAligned(PdfContentByte.ALIGN_CENTER, "CERTIFICATE ID09 / 01238", width - (imageIso.ScaledWidth / 2) - marginRight, height - imageIso.ScaledHeight - marginTop + 60 - 5, 0);
+            //byte[] imageByteIso = Convert.FromBase64String(Base64ImageStrings.ISO);
+            //Image imageIso = Image.GetInstance(imageByteIso);
+            //if (imageIso.Width > 80)
+            //{
+            //    float percentage = 0.0f;
+            //    percentage = 80 / imageIso.Width;
+            //    imageIso.ScalePercent(percentage * 100);
+            //}
+            //imageIso.SetAbsolutePosition(width - imageIso.ScaledWidth - marginRight, height - imageIso.ScaledHeight - marginTop + 60);
+            //cb.AddImage(imageIso, inlineImage: true);
+            //cb.ShowTextAligned(PdfContentByte.ALIGN_CENTER, "CERTIFICATE ID09 / 01238", width - (imageIso.ScaledWidth / 2) - marginRight, height - imageIso.ScaledHeight - marginTop + 60 - 5, 0);
 
             #endregion
 

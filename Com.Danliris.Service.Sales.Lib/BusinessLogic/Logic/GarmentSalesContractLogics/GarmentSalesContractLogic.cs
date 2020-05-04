@@ -177,7 +177,7 @@ namespace Com.Danliris.Service.Sales.Lib.BusinessLogic.Logic.GarmentSalesContrac
             string Year = model.CreatedUtc.ToString("yy");
             string Month = model.CreatedUtc.ToString("MM");
 
-            string no = $"{model.ComodityCode}/SC/DL/{Year}";
+            string no = $"{model.ComodityCode}/SC/AG/{Year}";
             int Padding = 5;
 
             var lastData = DbSet.IgnoreQueryFilters().Where(w => w.SalesContractNo.StartsWith(no) && !w.IsDeleted).OrderByDescending(o => o.CreatedUtc).FirstOrDefault();
@@ -198,6 +198,7 @@ namespace Com.Danliris.Service.Sales.Lib.BusinessLogic.Logic.GarmentSalesContrac
             }
 
         }
+
 
         //async Task<string> GenerateNo(GarmentSalesContract model)
         //{
