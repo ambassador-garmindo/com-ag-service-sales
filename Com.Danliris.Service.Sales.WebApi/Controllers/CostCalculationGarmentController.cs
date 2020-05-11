@@ -111,7 +111,7 @@ namespace Com.Danliris.Service.Sales.WebApi.Controllers
 
 					return new FileStreamResult(stream, "application/pdf")
 					{
-						FileDownloadName = "Cost Calculation Export Garment " + viewModel.RO_Number + ".pdf"
+						FileDownloadName = "Cost Calculation Garment " + viewModel.RO_Number + ".pdf"
 					};
 
 				}
@@ -144,7 +144,7 @@ namespace Com.Danliris.Service.Sales.WebApi.Controllers
 
 				return new FileStreamResult(stream, "application/pdf")
 				{
-					FileDownloadName = "Budget Export Garment " + viewModel.RO_Number + ".pdf"
+					FileDownloadName = "Budget Garment " + viewModel.RO_Number + ".pdf"
 				};
 			}
 			catch (Exception e)

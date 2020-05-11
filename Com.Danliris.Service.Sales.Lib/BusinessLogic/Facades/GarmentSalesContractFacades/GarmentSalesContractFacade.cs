@@ -53,12 +53,6 @@ namespace Com.Danliris.Service.Sales.Lib.BusinessLogic.Facades.GarmentSalesContr
             return result += await UpdateCostCalAsync(costCal, (int)model.Id);
         }
 
-        //public int getCCRates(CostCalculationGarment cc, int id)
-        //{
-        //    cc.SCGarmentId = id;
-        //    int result = DbContext.FindAsync
-        //}
-
         public async Task<int> UpdateCostCalAsync(CostCalculationGarment costCalculationGarment, int Id)
         {
             costCalculationGarment.SCGarmentId = Id;

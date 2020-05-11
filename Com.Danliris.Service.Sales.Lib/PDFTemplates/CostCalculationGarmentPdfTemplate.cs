@@ -45,6 +45,11 @@ namespace Com.Danliris.Service.Sales.Lib.PDFTemplates
             float startY = 840 - margin;
 
             #region Header
+            string codeNoString = "FM-02-PJ-02-02/R1";
+            Paragraph codeNo = new Paragraph(codeNoString, bold_font) { Alignment = Element.ALIGN_RIGHT };
+            codeNo.SpacingAfter = 10f;
+            document.Add(codeNo);
+
             cb.BeginText();
             cb.SetFontAndSize(bf, 10);
             cb.ShowTextAligned(PdfContentByte.ALIGN_LEFT, "PT. AMBASSADOR GARMINDO", 10, 820, 0);

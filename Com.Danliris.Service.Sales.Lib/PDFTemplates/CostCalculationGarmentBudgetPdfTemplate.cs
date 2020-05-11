@@ -32,6 +32,11 @@ namespace Com.Danliris.Service.Sales.Lib.PDFTemplates
             PdfPCell cell_colon = new PdfPCell() { Border = Rectangle.NO_BORDER, HorizontalAlignment = Element.ALIGN_LEFT, VerticalAlignment = Element.ALIGN_MIDDLE, Phrase = new Phrase(":", normal_font) };
 
             #region Header
+            string codeNoString = "FM-02-PJ-01-03/R1";
+            Paragraph codeNo = new Paragraph(codeNoString, bold_font) { Alignment = Element.ALIGN_RIGHT };
+            codeNo.SpacingAfter = 10f;
+            document.Add(codeNo);
+
             cb.BeginText();
             cb.SetFontAndSize(bf, 10);
             cb.ShowTextAligned(PdfContentByte.ALIGN_LEFT, "PT. AMBASSADOR GARMINDO", 10, 820, 0);
