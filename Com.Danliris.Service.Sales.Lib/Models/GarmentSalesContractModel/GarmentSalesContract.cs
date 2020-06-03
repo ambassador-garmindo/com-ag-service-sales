@@ -51,6 +51,7 @@ namespace Com.Danliris.Service.Sales.Lib.Models.GarmentSalesContractModel
         public bool IsPrinted { get; set; }
         public bool IsWash { get; set; }
         public bool IsTTPayment { get; set; }
+        public bool IsIncludePPN { get; set; } //15-05-2020
         public string PaymentDetail { get; set; }
         public long AccountBankId { get; set; }
         [MaxLength(500)]

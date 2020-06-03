@@ -28,6 +28,20 @@ namespace Com.Danliris.Service.Sales.Lib.PDFTemplates
             }
         }
 
+        private string IsIncludePPN(bool isIncludePPN)
+        {
+            string value = "";
+            if (isIncludePPN)
+            {
+                return value = "<Include PPN>"; //return value
+            }
+            else
+            {
+                return value = "<Exclude PPN>";
+            }
+        } //condition checker
+
+
         public MemoryStream GeneratePdfTemplate(GarmentSalesContractViewModel viewModel, IGarmentSalesContract facade, int timeoffset, Dictionary<string, object> buyer, Dictionary<string, object> bank, string rate)
         {
             Font header_font = FontFactory.GetFont(BaseFont.HELVETICA, BaseFont.CP1250, BaseFont.NOT_EMBEDDED, 18);
@@ -44,9 +58,9 @@ namespace Com.Danliris.Service.Sales.Lib.PDFTemplates
 
             document.Open();
 
-            
 
 
+            bool isIncludePPN = viewModel.IsIncludePPN; //condition parameter
             bool isDollar = rate.Equals("1");
 
             
@@ -158,12 +172,12 @@ namespace Com.Danliris.Service.Sales.Lib.PDFTemplates
                 tableBody.AddCell(bodyContentLeft);
                 if (viewModel.Items.Count > 0)
                 {
-                    bodyContentLeft.Phrase = new Phrase(viewModel.FOB, normal_font);
+                    bodyContentLeft.Phrase = new Phrase(viewModel.FOB + " " +IsIncludePPN(isIncludePPN), normal_font);
                     tableBody.AddCell(bodyContentLeft);
                 }
                 else
                 {
-                    bodyContentLeft.Phrase = new Phrase(viewModel.FOB + " " + string.Format("{0:n2}", GetCurrencyValue(viewModel.Price, isDollar)) + " /" + viewModel.Uom.Unit, normal_font);
+                    bodyContentLeft.Phrase = new Phrase(viewModel.FOB + " " + string.Format("{0:n2}", GetCurrencyValue(viewModel.Price, isDollar)) + " /" + viewModel.Uom.Unit + " " + IsIncludePPN(isIncludePPN), normal_font);
                     tableBody.AddCell(bodyContentLeft);
                 }
 
