@@ -33,14 +33,25 @@ namespace Com.Danliris.Service.Sales.Lib.ViewModels.GarmentROViewModels
                 yield return new ValidationResult("Instruksi harus diisi", new List<string> { "Instruction" });
             }
 
-            if (ImagesFile == null || ImagesFile.Count.Equals(0))
+            //if (ImagesFile == null || ImagesFile.Count.Equals(0))
+            //{
+            //    yield return new ValidationResult("Gambar harus Ada", new List<string> { "ImageFile" });
+            //}
+
+            //else if (ImagesName.Count.Equals(0) || ImagesName.Count != ImagesFile.Count)
+            //{
+            //    yield return new ValidationResult("Nama Gambar harus diisi", new List<string> { "ImageFile" });
+            //} 
+            //16/06/2020
+
+            if (ImagesFile.Count != 0)
             {
-                yield return new ValidationResult("Gambar harus Ada", new List<string> { "ImageFile" });
+                if (ImagesName.Count.Equals(0) || ImagesName.Count != ImagesFile.Count)
+                {
+                    yield return new ValidationResult("Nama Gambar harus diisi", new List<string> { "ImageFile" });
+                }
             }
-            else if (ImagesName.Count.Equals(0) || ImagesName.Count != ImagesFile.Count)
-            {
-                yield return new ValidationResult("Nama Gambar harus diisi", new List<string> { "ImageFile" });
-            }
+            //17/06/2020
 
             if (DocumentsFileName != null && DocumentsFileName.Count > 0)
             {

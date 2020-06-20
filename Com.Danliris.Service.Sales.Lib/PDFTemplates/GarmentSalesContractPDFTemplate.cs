@@ -45,7 +45,7 @@ namespace Com.Danliris.Service.Sales.Lib.PDFTemplates
         public MemoryStream GeneratePdfTemplate(GarmentSalesContractViewModel viewModel, IGarmentSalesContract facade, int timeoffset, Dictionary<string, object> buyer, Dictionary<string, object> bank, string rate)
         {
             Font header_font = FontFactory.GetFont(BaseFont.HELVETICA, BaseFont.CP1250, BaseFont.NOT_EMBEDDED, 18);
-            Font normal_font = FontFactory.GetFont(BaseFont.HELVETICA, BaseFont.CP1250, BaseFont.NOT_EMBEDDED, 7);
+            Font normal_font = FontFactory.GetFont(BaseFont.HELVETICA, BaseFont.CP1250, BaseFont.NOT_EMBEDDED, 8);
             Font bold_font = FontFactory.GetFont(BaseFont.HELVETICA_BOLD, BaseFont.CP1250, BaseFont.NOT_EMBEDDED, 7);
 
             Document document = new Document(PageSize.A4, 40, 40, 120, 40);
@@ -86,8 +86,18 @@ namespace Com.Danliris.Service.Sales.Lib.PDFTemplates
 
                 DateTime date = viewModel.CreatedUtc.AddHours(timeoffset);
                 PdfPCell cellHeaderContentRight = new PdfPCell() { Border = Rectangle.NO_BORDER, HorizontalAlignment = Element.ALIGN_RIGHT };
-                cellHeaderContentRight.Phrase = new Phrase("DATE, " + date.ToString("MMMM dd, yyyy"), normal_font);
-                tableHeader.AddCell(cellHeaderContentRight);
+                if (buyer["Type"].Equals("Ekspor"))
+                {
+                    cellHeaderContentRight.Phrase = new Phrase("SURAKARTA, " + date.ToString("MMMM dd, yyyy"), normal_font);
+                    tableHeader.AddCell(cellHeaderContentRight);
+                }
+                else {
+
+                    CultureInfo culture = new CultureInfo("id-ID");
+                    cellHeaderContentRight.Phrase = new Phrase("SURAKARTA, " + date.ToString("dd MMMM yyyy", culture), normal_font);
+                    tableHeader.AddCell(cellHeaderContentRight); //16-06-2020
+
+            }
 
                 cellHeaderContentLeft.Phrase = new Phrase("MESSR.", normal_font);
                 tableHeader.AddCell(cellHeaderContentLeft);
@@ -126,8 +136,11 @@ namespace Com.Danliris.Service.Sales.Lib.PDFTemplates
                 Paragraph scNo = new Paragraph(viewModel.SalesContractNo, bold_font) { Alignment = Element.ALIGN_CENTER };
                 scNo.SpacingAfter = 10f;
                 document.Add(scNo);
-                #endregion
+            #endregion
 
+
+            if (buyer["Type"].Equals("Ekspor"))
+            {
 
 
                 #region body
@@ -138,25 +151,25 @@ namespace Com.Danliris.Service.Sales.Lib.PDFTemplates
                 PdfPCell bodyContentRight = new PdfPCell() { Border = Rectangle.NO_BORDER, HorizontalAlignment = Element.ALIGN_RIGHT };
                 bodyContentLeft.Phrase = new Phrase("Description of Goods", normal_font);
                 tableBody.AddCell(bodyContentLeft);
-                bodyContentLeft.Phrase = new Phrase(": ");
+                bodyContentLeft.Phrase = new Phrase(": ", normal_font);
                 tableBody.AddCell(bodyContentLeft);
                 bodyContentLeft.Phrase = new Phrase(viewModel.Description, normal_font);
                 tableBody.AddCell(bodyContentLeft);
                 bodyContentLeft.Phrase = new Phrase("Material", normal_font);
                 tableBody.AddCell(bodyContentLeft);
-                bodyContentLeft.Phrase = new Phrase(": ");
+                bodyContentLeft.Phrase = new Phrase(": ", normal_font);
                 tableBody.AddCell(bodyContentLeft);
                 bodyContentLeft.Phrase = new Phrase(viewModel.Material, normal_font);
                 tableBody.AddCell(bodyContentLeft);
                 bodyContentLeft.Phrase = new Phrase("Packing", normal_font);
                 tableBody.AddCell(bodyContentLeft);
-                bodyContentLeft.Phrase = new Phrase(": ");
+                bodyContentLeft.Phrase = new Phrase(": ", normal_font);
                 tableBody.AddCell(bodyContentLeft);
                 bodyContentLeft.Phrase = new Phrase(viewModel.Packing, normal_font);
                 tableBody.AddCell(bodyContentLeft);
                 bodyContentLeft.Phrase = new Phrase("Style/Order/Article No.", normal_font);
                 tableBody.AddCell(bodyContentLeft);
-                bodyContentLeft.Phrase = new Phrase(": ");
+                bodyContentLeft.Phrase = new Phrase(": ", normal_font);
                 tableBody.AddCell(bodyContentLeft);
                 bodyContentLeft.Phrase = new Phrase(viewModel.Article, normal_font);
                 tableBody.AddCell(bodyContentLeft);
@@ -172,7 +185,7 @@ namespace Com.Danliris.Service.Sales.Lib.PDFTemplates
                 tableBody.AddCell(bodyContentLeft);
                 if (viewModel.Items.Count > 0)
                 {
-                    bodyContentLeft.Phrase = new Phrase(viewModel.FOB + " " +IsIncludePPN(isIncludePPN), normal_font);
+                    bodyContentLeft.Phrase = new Phrase(viewModel.FOB + " " + IsIncludePPN(isIncludePPN), normal_font);
                     tableBody.AddCell(bodyContentLeft);
                 }
                 else
@@ -200,7 +213,7 @@ namespace Com.Danliris.Service.Sales.Lib.PDFTemplates
                 tableBody.AddCell(bodyContentLeft);
                 bodyContentLeft.Phrase = new Phrase(": ", normal_font);
                 tableBody.AddCell(bodyContentLeft);
-                bodyContentLeft.Phrase = new Phrase(string.Format("{0:n2}", GetCurrencyValue(viewModel.Amount, isDollar)), normal_font);
+                bodyContentLeft.Phrase = new Phrase(string.Format("{0:n2}", GetCurrencyValue(viewModel.Amount, isDollar) + " " + IsIncludePPN(isIncludePPN)), normal_font);
                 tableBody.AddCell(bodyContentLeft);
                 bodyContentLeft.Phrase = new Phrase("Shipment/Delivery", normal_font);
                 tableBody.AddCell(bodyContentLeft);
@@ -323,50 +336,88 @@ namespace Com.Danliris.Service.Sales.Lib.PDFTemplates
                 separator.SpacingAfter = 10f;
                 document.Add(separator);
 
-                PdfPTable sign = new PdfPTable(2);
-                sign.SetWidths(new float[] { 10f, 3f });
-                PdfPCell cell_signatureLeft = new PdfPCell() { Border = Rectangle.NO_BORDER, HorizontalAlignment = Element.ALIGN_LEFT, VerticalAlignment = Element.ALIGN_TOP, Padding = 2 };
+                PdfPTable sign = new PdfPTable(3);
+                sign.SetWidths(new float[] { 4f, 4f, 4f });
+                PdfPCell cell_signatureLeft = new PdfPCell() { Border = Rectangle.NO_BORDER, HorizontalAlignment = Element.ALIGN_CENTER, VerticalAlignment = Element.ALIGN_TOP, Padding = 2 };
+                PdfPCell cell_signatureMiddle = new PdfPCell() { Border = Rectangle.NO_BORDER, HorizontalAlignment = Element.ALIGN_CENTER, VerticalAlignment = Element.ALIGN_TOP, Padding = 2 };
                 PdfPCell cell_signatureRight = new PdfPCell() { Border = Rectangle.NO_BORDER, HorizontalAlignment = Element.ALIGN_CENTER, VerticalAlignment = Element.ALIGN_TOP, Padding = 2 };
 
                 cell_signatureLeft.Phrase = new Phrase("CONFIRMED BY BUYER :", normal_font);
                 sign.AddCell(cell_signatureLeft);
+                cell_signatureMiddle.Phrase = new Phrase("", normal_font);
+                sign.AddCell(cell_signatureMiddle);
                 cell_signatureRight.Phrase = new Phrase("SELLER", normal_font);
                 sign.AddCell(cell_signatureRight);
 
 
                 cell_signatureLeft.Phrase = new Phrase("", normal_font);
                 sign.AddCell(cell_signatureLeft);
-                cell_signatureRight.Phrase = new Phrase("PT. AMBASSADOR GARMINDO", normal_font);
-                sign.AddCell(cell_signatureRight);
-
-                cell_signatureLeft.Phrase = new Phrase("", normal_font);
-                sign.AddCell(cell_signatureLeft);
+                cell_signatureMiddle.Phrase = new Phrase("", normal_font);
+                sign.AddCell(cell_signatureMiddle);
                 cell_signatureRight.Phrase = new Phrase("", normal_font);
                 sign.AddCell(cell_signatureRight);
 
                 cell_signatureLeft.Phrase = new Phrase("", normal_font);
                 sign.AddCell(cell_signatureLeft);
+                cell_signatureMiddle.Phrase = new Phrase("", normal_font);
+                sign.AddCell(cell_signatureMiddle);
                 cell_signatureRight.Phrase = new Phrase("", normal_font);
                 sign.AddCell(cell_signatureRight);
 
                 cell_signatureLeft.Phrase = new Phrase("", normal_font);
                 sign.AddCell(cell_signatureLeft);
+                cell_signatureMiddle.Phrase = new Phrase("", normal_font);
+                sign.AddCell(cell_signatureMiddle);
                 cell_signatureRight.Phrase = new Phrase("", normal_font);
                 sign.AddCell(cell_signatureRight);
 
                 cell_signatureLeft.Phrase = new Phrase("", normal_font);
                 sign.AddCell(cell_signatureLeft);
+                cell_signatureMiddle.Phrase = new Phrase("", normal_font);
+                sign.AddCell(cell_signatureMiddle);
                 cell_signatureRight.Phrase = new Phrase("", normal_font);
                 sign.AddCell(cell_signatureRight);
 
                 cell_signatureLeft.Phrase = new Phrase("", normal_font);
                 sign.AddCell(cell_signatureLeft);
+                cell_signatureMiddle.Phrase = new Phrase("", normal_font);
+                sign.AddCell(cell_signatureMiddle);
+                cell_signatureRight.Phrase = new Phrase("", normal_font);
+                sign.AddCell(cell_signatureRight);
+
+                cell_signatureLeft.Phrase = new Phrase("", normal_font);
+                sign.AddCell(cell_signatureLeft);
+                cell_signatureMiddle.Phrase = new Phrase("", normal_font);
+                sign.AddCell(cell_signatureMiddle);
+                cell_signatureRight.Phrase = new Phrase("", normal_font);
+                sign.AddCell(cell_signatureRight);
+
+                cell_signatureLeft.Phrase = new Phrase("", normal_font);
+                sign.AddCell(cell_signatureLeft);
+                cell_signatureMiddle.Phrase = new Phrase("", normal_font);
+                sign.AddCell(cell_signatureMiddle);
+                cell_signatureRight.Phrase = new Phrase("", normal_font);
+                sign.AddCell(cell_signatureRight);
+
+                cell_signatureLeft.Phrase = new Phrase("", normal_font);
+                sign.AddCell(cell_signatureLeft);
+                cell_signatureMiddle.Phrase = new Phrase("", normal_font);
+                sign.AddCell(cell_signatureMiddle);
+                cell_signatureRight.Phrase = new Phrase("", normal_font);
+                sign.AddCell(cell_signatureRight);
+
+                cell_signatureLeft.Phrase = new Phrase("_______________", normal_font);
+                sign.AddCell(cell_signatureLeft);
+                cell_signatureMiddle.Phrase = new Phrase("", normal_font);
+                sign.AddCell(cell_signatureMiddle);
                 cell_signatureRight.Phrase = new Phrase("_______________", normal_font);
                 sign.AddCell(cell_signatureRight);
 
-                cell_signatureLeft.Phrase = new Phrase(" ", normal_font);
+                cell_signatureLeft.Phrase = new Phrase(buyer["Name"].ToString().ToUpper(), normal_font);
                 sign.AddCell(cell_signatureLeft);
-                cell_signatureRight.Phrase = new Phrase("GENERAL MANAGER", normal_font);
+                cell_signatureMiddle.Phrase = new Phrase("", normal_font);
+                sign.AddCell(cell_signatureMiddle);
+                cell_signatureRight.Phrase = new Phrase("PT. AMBASSADOR GARMINDO", normal_font);
                 sign.AddCell(cell_signatureRight);
 
 
@@ -379,309 +430,572 @@ namespace Com.Danliris.Service.Sales.Lib.PDFTemplates
                 #region LOC
                 if (!viewModel.IsTTPayment)
                 {
-                    if (buyer["Type"].Equals("Ekspor"))
-                    {
-                    document.NewPage();
-                    //document.Add(bankSpace);
-
-                    Paragraph LocTitle = new Paragraph("CONDITION OF LETTER OF CREDIT (L/C)", bold_font) { Alignment = Element.ALIGN_CENTER };
-                    LocTitle.SpacingAfter = 5f;
-                    document.Add(LocTitle);
-
-                    Paragraph loc = new Paragraph("THE FOLLOWING CONDITION ARE REQUESTED TO BE INCLUDED IN YOUR LETTER OF CREDIT. OTHERWISE THERE WILL BE DELAYED IN OUR SHIPMENT BECAUSE OF AMENDMENT WE REQUIRE TO MEET THE INDONESIAN BANKING AND GOVERNMENTAL EXPORT REGULATION. \n THEREFORE PLEASE INSTRUCT YOUR BANK TO INCLUDE THE BELOW MENTIONED CONDITIONS IN YOUR LETTER OF CREDIT TO US : ", normal_font) { Alignment = Element.ALIGN_LEFT };
-                    loc.SpacingAfter = 5f;
-                    document.Add(loc);
-
-                    PdfPTable LocList = new PdfPTable(2);
-                    LocList.SetWidths(new float[] { 0.5f, 10f });
-                    PdfPCell cell_loc = new PdfPCell() { Border = Rectangle.NO_BORDER, HorizontalAlignment = Element.ALIGN_LEFT, VerticalAlignment = Element.ALIGN_TOP, Padding = 2 };
-
-                    cell_loc.Phrase = new Phrase("A.", normal_font);
-                    LocList.AddCell(cell_loc);
-                    cell_loc.Phrase = new Phrase(" IRREVOCABLE", normal_font);
-                    LocList.AddCell(cell_loc);
-
-                    cell_loc.Phrase = new Phrase("B.", normal_font);
-                    LocList.AddCell(cell_loc);
-                    cell_loc.Phrase = new Phrase(" TRANSFERABLE OR NEGOTIABLE THROUGH ANY BANK IN INDONESIA", normal_font);
-                    LocList.AddCell(cell_loc);
+                        document.NewPage();
+                        //document.Add(bankSpace);
+
+                        Paragraph LocTitle = new Paragraph("CONDITION OF LETTER OF CREDIT (L/C)", bold_font) { Alignment = Element.ALIGN_CENTER };
+                        LocTitle.SpacingAfter = 5f;
+                        document.Add(LocTitle);
+
+                        Paragraph loc = new Paragraph("THE FOLLOWING CONDITION ARE REQUESTED TO BE INCLUDED IN YOUR LETTER OF CREDIT. OTHERWISE THERE WILL BE DELAYED IN OUR SHIPMENT BECAUSE OF AMENDMENT WE REQUIRE TO MEET THE INDONESIAN BANKING AND GOVERNMENTAL EXPORT REGULATION. \n THEREFORE PLEASE INSTRUCT YOUR BANK TO INCLUDE THE BELOW MENTIONED CONDITIONS IN YOUR LETTER OF CREDIT TO US : ", normal_font) { Alignment = Element.ALIGN_LEFT };
+                        loc.SpacingAfter = 5f;
+                        document.Add(loc);
+
+                        PdfPTable LocList = new PdfPTable(2);
+                        LocList.SetWidths(new float[] { 0.5f, 10f });
+                        PdfPCell cell_loc = new PdfPCell() { Border = Rectangle.NO_BORDER, HorizontalAlignment = Element.ALIGN_LEFT, VerticalAlignment = Element.ALIGN_TOP, Padding = 2 };
+
+                        cell_loc.Phrase = new Phrase("A.", normal_font);
+                        LocList.AddCell(cell_loc);
+                        cell_loc.Phrase = new Phrase(" IRREVOCABLE", normal_font);
+                        LocList.AddCell(cell_loc);
 
-                    cell_loc.Phrase = new Phrase("C.", normal_font);
-                    LocList.AddCell(cell_loc);
-                    cell_loc.Phrase = new Phrase(" DRAWN AT SIGHT", normal_font);
-                    LocList.AddCell(cell_loc);
+                        cell_loc.Phrase = new Phrase("B.", normal_font);
+                        LocList.AddCell(cell_loc);
+                        cell_loc.Phrase = new Phrase(" TRANSFERABLE OR NEGOTIABLE THROUGH ANY BANK IN INDONESIA", normal_font);
+                        LocList.AddCell(cell_loc);
 
+                        cell_loc.Phrase = new Phrase("C.", normal_font);
+                        LocList.AddCell(cell_loc);
+                        cell_loc.Phrase = new Phrase(" DRAWN AT SIGHT", normal_font);
+                        LocList.AddCell(cell_loc);
 
 
-                    cell_loc.Phrase = new Phrase("D.", normal_font);
-                    LocList.AddCell(cell_loc);
-                    cell_loc.Phrase = new Phrase(" BENEFICIARY      : PT. AMBASSADOR GARMINDO \n                                 ADDRESS    : KELURAHAN BANARAN, KECAMATAN GROGOL  \n                                                        SUKOHARJO 57193 - INDONESIA", normal_font);
-                    LocList.AddCell(cell_loc);
 
+                        cell_loc.Phrase = new Phrase("D.", normal_font);
+                        LocList.AddCell(cell_loc);
+                        cell_loc.Phrase = new Phrase(" BENEFICIARY      : PT. AMBASSADOR GARMINDO \n                                 ADDRESS    : KELURAHAN BANARAN, KECAMATAN GROGOL  \n                                                        SUKOHARJO 57193 - INDONESIA", normal_font);
+                        LocList.AddCell(cell_loc);
 
-                    cell_loc.Phrase = new Phrase("E.", normal_font);
-                    LocList.AddCell(cell_loc);
-                    cell_loc.Phrase = new Phrase("ADVISING BANK     : " + bank["BankName"], normal_font);
-                    LocList.AddCell(cell_loc);
 
+                        cell_loc.Phrase = new Phrase("E.", normal_font);
+                        LocList.AddCell(cell_loc);
+                        cell_loc.Phrase = new Phrase("ADVISING BANK     : " + bank["BankName"], normal_font);
+                        LocList.AddCell(cell_loc);
 
-                    cell_loc.Phrase = new Phrase("F.", normal_font);
-                    LocList.AddCell(cell_loc);
-                    cell_loc.Phrase = new Phrase("CLEARLY STATE     : PARTIAL SHIPMENT ALLOWED / PROHIBITED", normal_font);
-                    LocList.AddCell(cell_loc);
-
-
-                    cell_loc.Phrase = new Phrase("G.", normal_font);
-                    LocList.AddCell(cell_loc);
-                    cell_loc.Phrase = new Phrase("TRANSHIPMENT ALLOWED", normal_font);
-                    LocList.AddCell(cell_loc);
-
-                    cell_loc.Phrase = new Phrase("H.", normal_font);
-                    LocList.AddCell(cell_loc);
-                    cell_loc.Phrase = new Phrase("BILL OF LANDING SHOWING BENEFICIARY AS SHIPPER AND MADE OUT TO THE ORDER OF NEGOTIATING BANK AND TO BE ENDORSED TO THE ORDER OF THE CREDIT OPENING BANK MARKED 'FREIGHT COLLECT' AND NOTIFY ..........................", normal_font);
-                    LocList.AddCell(cell_loc);
-
-                    cell_loc.Phrase = new Phrase("I.", normal_font);
-                    LocList.AddCell(cell_loc);
-                    cell_loc.Phrase = new Phrase("AIRWAY BILL ISSUED AND SIGNED BY THE CARRIER OF HIS AGENT REQUIRED MARKED 'FREIGHT COLLECT' AND NOTIFY.........................", normal_font);
-                    LocList.AddCell(cell_loc);
-
-                    cell_loc.Phrase = new Phrase("J.", normal_font);
-                    LocList.AddCell(cell_loc);
-                    cell_loc.Phrase = new Phrase("FORWARDED BILL OF LANDING", normal_font);
-                    LocList.AddCell(cell_loc);
-
-                    cell_loc.Phrase = new Phrase("K.", normal_font);
-                    LocList.AddCell(cell_loc);
-                    cell_loc.Phrase = new Phrase("EXPIRY DATE: 21 DAYS AFTER LATEST DATE OF SHIPMENT", normal_font);
-                    LocList.AddCell(cell_loc);
-
-                    cell_loc.Phrase = new Phrase("L.", normal_font);
-                    LocList.AddCell(cell_loc);
-                    cell_loc.Phrase = new Phrase("PLUS OR MINUS 5 PERCENT BOTH IN QUANTITY AND AMOUNT ACCEPTABLE", normal_font);
-                    LocList.AddCell(cell_loc);
-
-                    cell_loc.Phrase = new Phrase("M.", normal_font);
-                    LocList.AddCell(cell_loc);
-                    cell_loc.Phrase = new Phrase("DOCUMENTS TO BE PRESENTED WITHIN 21 DAYS AFTER THE DATE OF ISSUANCE BILL OF LANDING / AIRWAY BILL OR OTHER SHIPPING DOCUMENTS (S)", normal_font);
-                    LocList.AddCell(cell_loc);
-
-                    cell_loc.Phrase = new Phrase("N.", normal_font);
-                    LocList.AddCell(cell_loc);
-                    cell_loc.Phrase = new Phrase("SHIPMENT EXECUTED FROM ANY INDONESIA PORT / AIRPORT", normal_font);
-                    LocList.AddCell(cell_loc);
 
-                    cell_loc.Phrase = new Phrase("O.", normal_font);
-                    LocList.AddCell(cell_loc);
-                    cell_loc.Phrase = new Phrase("THIRD PARTY SHIPPER AND DOCUMENTS ARE ACCEPTABLE", normal_font);
-                    LocList.AddCell(cell_loc);
+                        cell_loc.Phrase = new Phrase("F.", normal_font);
+                        LocList.AddCell(cell_loc);
+                        cell_loc.Phrase = new Phrase("CLEARLY STATE     : PARTIAL SHIPMENT ALLOWED / PROHIBITED", normal_font);
+                        LocList.AddCell(cell_loc);
 
-                    cell_loc.Phrase = new Phrase("P.", normal_font);
-                    LocList.AddCell(cell_loc);
-                    cell_loc.Phrase = new Phrase("TELEGRAPHIC TRANSFER REIMBURSEMENT IS ALLOWED", normal_font);
-                    LocList.AddCell(cell_loc);
-                    #region
-                    ////another table
-                    //PdfPTable ALocList = new PdfPTable(2);
-                    //ALocList.SetWidths(new float[] {1f, 5f });
-                    //PdfPCell acell_loc = new PdfPCell() { Border = Rectangle.NO_BORDER, HorizontalAlignment = Element.ALIGN_LEFT, VerticalAlignment = Element.ALIGN_TOP, Padding = 2 };
 
+                        cell_loc.Phrase = new Phrase("G.", normal_font);
+                        LocList.AddCell(cell_loc);
+                        cell_loc.Phrase = new Phrase("TRANSHIPMENT ALLOWED", normal_font);
+                        LocList.AddCell(cell_loc);
 
-                    //    acell_loc.Phrase = new Phrase(" BENEFICIARY ", normal_font);
-                    //    ALocList.AddCell(acell_loc);
+                        cell_loc.Phrase = new Phrase("H.", normal_font);
+                        LocList.AddCell(cell_loc);
+                        cell_loc.Phrase = new Phrase("BILL OF LANDING SHOWING BENEFICIARY AS SHIPPER AND MADE OUT TO THE ORDER OF NEGOTIATING BANK AND TO BE ENDORSED TO THE ORDER OF THE CREDIT OPENING BANK MARKED 'FREIGHT COLLECT' AND NOTIFY ..........................", normal_font);
+                        LocList.AddCell(cell_loc);
 
-                    //    acell_loc.Phrase = new Phrase(": PT. DAN LIRIS", normal_font);
-                    //    ALocList.AddCell(acell_loc);
+                        cell_loc.Phrase = new Phrase("I.", normal_font);
+                        LocList.AddCell(cell_loc);
+                        cell_loc.Phrase = new Phrase("AIRWAY BILL ISSUED AND SIGNED BY THE CARRIER OF HIS AGENT REQUIRED MARKED 'FREIGHT COLLECT' AND NOTIFY.........................", normal_font);
+                        LocList.AddCell(cell_loc);
 
-                    //    acell_loc.Phrase = new Phrase("  ", normal_font);
-                    //    ALocList.AddCell(acell_loc);
+                        cell_loc.Phrase = new Phrase("J.", normal_font);
+                        LocList.AddCell(cell_loc);
+                        cell_loc.Phrase = new Phrase("FORWARDED BILL OF LANDING", normal_font);
+                        LocList.AddCell(cell_loc);
 
-                    //    acell_loc.Phrase = new Phrase("  ADDRESS    : KELURAHAN BANARAN, KECAMATAN GROGOL", normal_font);
-                    //    ALocList.AddCell(acell_loc);
+                        cell_loc.Phrase = new Phrase("K.", normal_font);
+                        LocList.AddCell(cell_loc);
+                        cell_loc.Phrase = new Phrase("EXPIRY DATE: 21 DAYS AFTER LATEST DATE OF SHIPMENT", normal_font);
+                        LocList.AddCell(cell_loc);
 
-                    //    acell_loc.Phrase = new Phrase("  ", normal_font);
-                    //    ALocList.AddCell(acell_loc);
+                        cell_loc.Phrase = new Phrase("L.", normal_font);
+                        LocList.AddCell(cell_loc);
+                        cell_loc.Phrase = new Phrase("PLUS OR MINUS 5 PERCENT BOTH IN QUANTITY AND AMOUNT ACCEPTABLE", normal_font);
+                        LocList.AddCell(cell_loc);
 
-                    //    acell_loc.Phrase = new Phrase("               KELURAHAN BANARAN, KECAMATAN GROGOL", normal_font);
-                    //    ALocList.AddCell(acell_loc);
+                        cell_loc.Phrase = new Phrase("M.", normal_font);
+                        LocList.AddCell(cell_loc);
+                        cell_loc.Phrase = new Phrase("DOCUMENTS TO BE PRESENTED WITHIN 21 DAYS AFTER THE DATE OF ISSUANCE BILL OF LANDING / AIRWAY BILL OR OTHER SHIPPING DOCUMENTS (S)", normal_font);
+                        LocList.AddCell(cell_loc);
 
-                    //    acell_loc.Phrase = new Phrase("ADVISING BANK", normal_font);
-                    //    ALocList.AddCell(acell_loc);
+                        cell_loc.Phrase = new Phrase("N.", normal_font);
+                        LocList.AddCell(cell_loc);
+                        cell_loc.Phrase = new Phrase("SHIPMENT EXECUTED FROM ANY INDONESIA PORT / AIRPORT", normal_font);
+                        LocList.AddCell(cell_loc);
 
-                    //    acell_loc.Phrase = new Phrase(": "+ bank["BankName"], normal_font);
-                    //    ALocList.AddCell(acell_loc);
+                        cell_loc.Phrase = new Phrase("O.", normal_font);
+                        LocList.AddCell(cell_loc);
+                        cell_loc.Phrase = new Phrase("THIRD PARTY SHIPPER AND DOCUMENTS ARE ACCEPTABLE", normal_font);
+                        LocList.AddCell(cell_loc);
 
+                        cell_loc.Phrase = new Phrase("P.", normal_font);
+                        LocList.AddCell(cell_loc);
+                        cell_loc.Phrase = new Phrase("TELEGRAPHIC TRANSFER REIMBURSEMENT IS ALLOWED", normal_font);
+                        LocList.AddCell(cell_loc);
+                        #region
+                        ////another table
+                        //PdfPTable ALocList = new PdfPTable(2);
+                        //ALocList.SetWidths(new float[] {1f, 5f });
+                        //PdfPCell acell_loc = new PdfPCell() { Border = Rectangle.NO_BORDER, HorizontalAlignment = Element.ALIGN_LEFT, VerticalAlignment = Element.ALIGN_TOP, Padding = 2 };
 
-                    //    acell_loc.Phrase = new Phrase("CLEARLY STATE", normal_font);
-                    //    ALocList.AddCell(acell_loc);
 
-                    //    acell_loc.Phrase = new Phrase(": PARTIAL SHIPMENT ALLOWED / PROHIBITED" , normal_font);
-                    //    ALocList.AddCell(acell_loc);
+                        //    acell_loc.Phrase = new Phrase(" BENEFICIARY ", normal_font);
+                        //    ALocList.AddCell(acell_loc);
 
-                    //PdfPCell AlocCell = new PdfPCell(LocList); // dont remove
-                    //ALocList.ExtendLastRow = false;
-                    //LocList.AddCell(ALocList);
-                    #endregion
-                    PdfPCell locCell = new PdfPCell(LocList); // dont remove
-                    LocList.ExtendLastRow = false;
-                    LocList.SpacingAfter = 10f;
-                    document.Add(LocList);
-                    }
-                    else
-                    {
-                    document.NewPage();
-                    //document.Add(bankSpace);
-
-                    Paragraph LocTitle = new Paragraph("CONDITION OF LETTER OF CREDIT (L/C)", bold_font) { Alignment = Element.ALIGN_CENTER };
-                    LocTitle.SpacingAfter = 5f;
-                    document.Add(LocTitle);
+                        //    acell_loc.Phrase = new Phrase(": PT. DAN LIRIS", normal_font);
+                        //    ALocList.AddCell(acell_loc);
 
-                    Paragraph loc = new Paragraph("THE FOLLOWING CONDITION ARE REQUESTED TO BE INCLUDED IN YOUR LETTER OF CREDIT. OTHERWISE THERE WILL BE DELAYED IN OUR SHIPMENT BECAUSE OF AMENDMENT WE REQUIRE TO MEET THE INDONESIAN BANKING. \n THEREFORE PLEASE INSTRUCT YOUR BANK TO INCLUDE THE BELOW MENTIONED CONDITIONS IN YOUR LETTER OF CREDIT TO US : ", normal_font) { Alignment = Element.ALIGN_LEFT };
-                    loc.SpacingAfter = 5f;
-                    document.Add(loc);
+                        //    acell_loc.Phrase = new Phrase("  ", normal_font);
+                        //    ALocList.AddCell(acell_loc);
 
-                    PdfPTable LocList = new PdfPTable(2);
-                    LocList.SetWidths(new float[] { 0.5f, 10f });
-                    PdfPCell cell_loc = new PdfPCell() { Border = Rectangle.NO_BORDER, HorizontalAlignment = Element.ALIGN_LEFT, VerticalAlignment = Element.ALIGN_TOP, Padding = 2 };
+                        //    acell_loc.Phrase = new Phrase("  ADDRESS    : KELURAHAN BANARAN, KECAMATAN GROGOL", normal_font);
+                        //    ALocList.AddCell(acell_loc);
 
-                    cell_loc.Phrase = new Phrase("A.", normal_font);
-                    LocList.AddCell(cell_loc);
-                    cell_loc.Phrase = new Phrase(" IRREVOCABLE", normal_font);
-                    LocList.AddCell(cell_loc);
+                        //    acell_loc.Phrase = new Phrase("  ", normal_font);
+                        //    ALocList.AddCell(acell_loc);
 
-                    cell_loc.Phrase = new Phrase("B.", normal_font);
-                    LocList.AddCell(cell_loc);
-                    cell_loc.Phrase = new Phrase(" TRANSFERABLE OR NEGOTIABLE THROUGH ANY BANK IN INDONESIA", normal_font);
-                    LocList.AddCell(cell_loc);
+                        //    acell_loc.Phrase = new Phrase("               KELURAHAN BANARAN, KECAMATAN GROGOL", normal_font);
+                        //    ALocList.AddCell(acell_loc);
 
-                    cell_loc.Phrase = new Phrase("C.", normal_font);
-                    LocList.AddCell(cell_loc);
-                    cell_loc.Phrase = new Phrase(" DRAWN AT SIGHT", normal_font);
-                    LocList.AddCell(cell_loc);
+                        //    acell_loc.Phrase = new Phrase("ADVISING BANK", normal_font);
+                        //    ALocList.AddCell(acell_loc);
 
+                        //    acell_loc.Phrase = new Phrase(": "+ bank["BankName"], normal_font);
+                        //    ALocList.AddCell(acell_loc);
 
 
-                    cell_loc.Phrase = new Phrase("D.", normal_font);
-                    LocList.AddCell(cell_loc);
-                    cell_loc.Phrase = new Phrase(" BENEFICIARY      : PT. AMBASSADOR GARMINDO \n                                 ADDRESS    : KELURAHAN BANARAN, KECAMATAN GROGOL  \n                                                        SUKOHARJO 57193 - INDONESIA", normal_font);
-                    LocList.AddCell(cell_loc);
+                        //    acell_loc.Phrase = new Phrase("CLEARLY STATE", normal_font);
+                        //    ALocList.AddCell(acell_loc);
 
+                        //    acell_loc.Phrase = new Phrase(": PARTIAL SHIPMENT ALLOWED / PROHIBITED" , normal_font);
+                        //    ALocList.AddCell(acell_loc);
 
-                    cell_loc.Phrase = new Phrase("E.", normal_font);
-                    LocList.AddCell(cell_loc);
-                    cell_loc.Phrase = new Phrase("ADVISING BANK     : " + bank["BankName"], normal_font);
-                    LocList.AddCell(cell_loc);
-
-
-                    cell_loc.Phrase = new Phrase("F.", normal_font);
-                    LocList.AddCell(cell_loc);
-                    cell_loc.Phrase = new Phrase("CLEARLY STATE     : PARTIAL SHIPMENT ALLOWED / PROHIBITED", normal_font);
-                    LocList.AddCell(cell_loc);
-
-
-                    cell_loc.Phrase = new Phrase("G.", normal_font);
-                    LocList.AddCell(cell_loc);
-                    cell_loc.Phrase = new Phrase("TRANSHIPMENT ALLOWED", normal_font);
-                    LocList.AddCell(cell_loc);
-
-                    cell_loc.Phrase = new Phrase("H.", normal_font);
-                    LocList.AddCell(cell_loc);
-                    cell_loc.Phrase = new Phrase("BILL OF LANDING SHOWING BENEFICIARY AS SHIPPER AND MADE OUT TO THE ORDER OF NEGOTIATING BANK AND TO BE ENDORSED TO THE ORDER OF THE CREDIT OPENING BANK MARKED 'FREIGHT COLLECT' AND NOTIFY ..........................", normal_font);
-                    LocList.AddCell(cell_loc);
-
-                    cell_loc.Phrase = new Phrase("I.", normal_font);
-                    LocList.AddCell(cell_loc);
-                    cell_loc.Phrase = new Phrase("AIRWAY BILL ISSUED AND SIGNED BY THE CARRIER OF HIS AGENT REQUIRED MARKED 'FREIGHT COLLECT' AND NOTIFY.........................", normal_font);
-                    LocList.AddCell(cell_loc);
-
-                    cell_loc.Phrase = new Phrase("J.", normal_font);
-                    LocList.AddCell(cell_loc);
-                    cell_loc.Phrase = new Phrase("FORWARDED BILL OF LANDING", normal_font);
-                    LocList.AddCell(cell_loc);
-
-                    cell_loc.Phrase = new Phrase("K.", normal_font);
-                    LocList.AddCell(cell_loc);
-                    cell_loc.Phrase = new Phrase("EXPIRY DATE: 21 DAYS AFTER LATEST DATE OF SHIPMENT", normal_font);
-                    LocList.AddCell(cell_loc);
-
-                    cell_loc.Phrase = new Phrase("L.", normal_font);
-                    LocList.AddCell(cell_loc);
-                    cell_loc.Phrase = new Phrase("PLUS OR MINUS 5 PERCENT BOTH IN QUANTITY AND AMOUNT ACCEPTABLE", normal_font);
-                    LocList.AddCell(cell_loc);
-
-                    cell_loc.Phrase = new Phrase("M.", normal_font);
-                    LocList.AddCell(cell_loc);
-                    cell_loc.Phrase = new Phrase("DOCUMENTS TO BE PRESENTED WITHIN 21 DAYS AFTER THE DATE OF ISSUANCE BILL OF LANDING / AIRWAY BILL OR OTHER SHIPPING DOCUMENTS (S)", normal_font);
-                    LocList.AddCell(cell_loc);
-
-                    cell_loc.Phrase = new Phrase("N.", normal_font);
-                    LocList.AddCell(cell_loc);
-                    cell_loc.Phrase = new Phrase("SHIPMENT EXECUTED FROM ANY INDONESIA PORT / AIRPORT", normal_font);
-                    LocList.AddCell(cell_loc);
-
-                    cell_loc.Phrase = new Phrase("O.", normal_font);
-                    LocList.AddCell(cell_loc);
-                    cell_loc.Phrase = new Phrase("THIRD PARTY SHIPPER AND DOCUMENTS ARE ACCEPTABLE", normal_font);
-                    LocList.AddCell(cell_loc);
-
-                    cell_loc.Phrase = new Phrase("P.", normal_font);
-                    LocList.AddCell(cell_loc);
-                    cell_loc.Phrase = new Phrase("TELEGRAPHIC TRANSFER REIMBURSEMENT IS ALLOWED", normal_font);
-                    LocList.AddCell(cell_loc);
-                    #region
-                    ////another table
-                    //PdfPTable ALocList = new PdfPTable(2);
-                    //ALocList.SetWidths(new float[] {1f, 5f });
-                    //PdfPCell acell_loc = new PdfPCell() { Border = Rectangle.NO_BORDER, HorizontalAlignment = Element.ALIGN_LEFT, VerticalAlignment = Element.ALIGN_TOP, Padding = 2 };
-
-
-                    //    acell_loc.Phrase = new Phrase(" BENEFICIARY ", normal_font);
-                    //    ALocList.AddCell(acell_loc);
-
-                    //    acell_loc.Phrase = new Phrase(": PT. DAN LIRIS", normal_font);
-                    //    ALocList.AddCell(acell_loc);
-
-                    //    acell_loc.Phrase = new Phrase("  ", normal_font);
-                    //    ALocList.AddCell(acell_loc);
-
-                    //    acell_loc.Phrase = new Phrase("  ADDRESS    : KELURAHAN BANARAN, KECAMATAN GROGOL", normal_font);
-                    //    ALocList.AddCell(acell_loc);
-
-                    //    acell_loc.Phrase = new Phrase("  ", normal_font);
-                    //    ALocList.AddCell(acell_loc);
-
-                    //    acell_loc.Phrase = new Phrase("               KELURAHAN BANARAN, KECAMATAN GROGOL", normal_font);
-                    //    ALocList.AddCell(acell_loc);
-
-                    //    acell_loc.Phrase = new Phrase("ADVISING BANK", normal_font);
-                    //    ALocList.AddCell(acell_loc);
-
-                    //    acell_loc.Phrase = new Phrase(": "+ bank["BankName"], normal_font);
-                    //    ALocList.AddCell(acell_loc);
-
-
-                    //    acell_loc.Phrase = new Phrase("CLEARLY STATE", normal_font);
-                    //    ALocList.AddCell(acell_loc);
-
-                    //    acell_loc.Phrase = new Phrase(": PARTIAL SHIPMENT ALLOWED / PROHIBITED" , normal_font);
-                    //    ALocList.AddCell(acell_loc);
-
-                    //PdfPCell AlocCell = new PdfPCell(LocList); // dont remove
-                    //ALocList.ExtendLastRow = false;
-                    //LocList.AddCell(ALocList);
-                    #endregion
-                    PdfPCell locCell = new PdfPCell(LocList); // dont remove
-                    LocList.ExtendLastRow = false;
-                    LocList.SpacingAfter = 10f;
-                    document.Add(LocList);
-
-                }
-                    
-
+                        //PdfPCell AlocCell = new PdfPCell(LocList); // dont remove
+                        //ALocList.ExtendLastRow = false;
+                        //LocList.AddCell(ALocList);
+                        #endregion
+                        PdfPCell locCell = new PdfPCell(LocList); // dont remove
+                        LocList.ExtendLastRow = false;
+                        LocList.SpacingAfter = 10f;
+                        document.Add(LocList);
                 }
                 #endregion
 
-                   
+            }
+            else {
+
+                #region body
+                PdfPTable tableBody = new PdfPTable(3);
+                tableBody.SetWidths(new float[] { 0.75f, 0.1f, 2f });
+                PdfPCell bodyContentCenter = new PdfPCell() { Border = Rectangle.NO_BORDER, HorizontalAlignment = Element.ALIGN_CENTER };
+                PdfPCell bodyContentLeft = new PdfPCell() { Border = Rectangle.NO_BORDER, HorizontalAlignment = Element.ALIGN_LEFT };
+                PdfPCell bodyContentRight = new PdfPCell() { Border = Rectangle.NO_BORDER, HorizontalAlignment = Element.ALIGN_RIGHT };
+                bodyContentLeft.Phrase = new Phrase("DESKRIPSI BARANG", normal_font);
+                tableBody.AddCell(bodyContentLeft);
+                bodyContentLeft.Phrase = new Phrase(": ", normal_font);
+                tableBody.AddCell(bodyContentLeft);
+                bodyContentLeft.Phrase = new Phrase(viewModel.Description, normal_font);
+                tableBody.AddCell(bodyContentLeft);
+                bodyContentLeft.Phrase = new Phrase("MATERIAL", normal_font);
+                tableBody.AddCell(bodyContentLeft);
+                bodyContentLeft.Phrase = new Phrase(": ", normal_font);
+                tableBody.AddCell(bodyContentLeft);
+                bodyContentLeft.Phrase = new Phrase(viewModel.Material, normal_font);
+                tableBody.AddCell(bodyContentLeft);
+                bodyContentLeft.Phrase = new Phrase("PACKING", normal_font);
+                tableBody.AddCell(bodyContentLeft);
+                bodyContentLeft.Phrase = new Phrase(": ", normal_font);
+                tableBody.AddCell(bodyContentLeft);
+                bodyContentLeft.Phrase = new Phrase(viewModel.Packing, normal_font);
+                tableBody.AddCell(bodyContentLeft);
+                bodyContentLeft.Phrase = new Phrase("ARTICLE NO.", normal_font);
+                tableBody.AddCell(bodyContentLeft);
+                bodyContentLeft.Phrase = new Phrase(": ", normal_font);
+                tableBody.AddCell(bodyContentLeft);
+                bodyContentLeft.Phrase = new Phrase(viewModel.Article, normal_font);
+                tableBody.AddCell(bodyContentLeft);
+                bodyContentLeft.Phrase = new Phrase("JUMLAH", normal_font);
+                tableBody.AddCell(bodyContentLeft);
+                bodyContentLeft.Phrase = new Phrase(": ", normal_font);
+                tableBody.AddCell(bodyContentLeft);
+                bodyContentLeft.Phrase = new Phrase(viewModel.Quantity + " " + viewModel.Uom.Unit, normal_font);
+                tableBody.AddCell(bodyContentLeft);
+                bodyContentLeft.Phrase = new Phrase("HARGA SATUAN", normal_font);
+                tableBody.AddCell(bodyContentLeft);
+                bodyContentLeft.Phrase = new Phrase(": ", normal_font);
+                tableBody.AddCell(bodyContentLeft);
+                if (viewModel.Items.Count > 0)
+                {
+                    bodyContentLeft.Phrase = new Phrase(viewModel.FOB + " " + IsIncludePPN(isIncludePPN), normal_font);
+                    tableBody.AddCell(bodyContentLeft);
+                }
+                else
+                {
+                    bodyContentLeft.Phrase = new Phrase(viewModel.FOB + " " + string.Format("{0:n2}", GetCurrencyValue(viewModel.Price, isDollar)) + " /" + viewModel.Uom.Unit + " " + IsIncludePPN(isIncludePPN), normal_font);
+                    tableBody.AddCell(bodyContentLeft);
+                }
+
+
+                if (viewModel.Items.Count > 0)
+                {
+                    foreach (var item in viewModel.Items)
+                    {
+                        bodyContentLeft.Phrase = new Phrase("", normal_font);
+                        tableBody.AddCell(bodyContentLeft);
+                        bodyContentLeft.Phrase = new Phrase("", normal_font);
+                        tableBody.AddCell(bodyContentLeft);
+                        bodyContentLeft.Phrase = new Phrase(item.Description + "  : " + item.Quantity + " " + viewModel.Uom.Unit + " | " + string.Format("{0:n2}", GetCurrencyValue(item.Price, isDollar)) + " / " + viewModel.Uom.Unit, normal_font);
+                        tableBody.AddCell(bodyContentLeft);
+
+                    }
+                }
+
+                bodyContentLeft.Phrase = new Phrase("TOTAL", normal_font);
+                tableBody.AddCell(bodyContentLeft);
+                bodyContentLeft.Phrase = new Phrase(": ", normal_font);
+                tableBody.AddCell(bodyContentLeft);
+                bodyContentLeft.Phrase = new Phrase(string.Format("{0:n2}", GetCurrencyValue(viewModel.Amount, isDollar) + " " + IsIncludePPN(isIncludePPN)), normal_font);
+                tableBody.AddCell(bodyContentLeft);
+                bodyContentLeft.Phrase = new Phrase("PENGIRIMAN", normal_font);
+                tableBody.AddCell(bodyContentLeft);
+                bodyContentLeft.Phrase = new Phrase(": ", normal_font);
+                tableBody.AddCell(bodyContentLeft);
+                bodyContentLeft.Phrase = new Phrase(viewModel.DeliveryDate.ToOffset(new TimeSpan(timeoffset, 0, 0)).ToString("dd/MM/yyyy") + " " + viewModel.Delivery, normal_font);
+                tableBody.AddCell(bodyContentLeft);
+                bodyContentLeft.Phrase = new Phrase("TUJUAN", normal_font);
+                tableBody.AddCell(bodyContentLeft);
+                bodyContentLeft.Phrase = new Phrase(": ", normal_font);
+                tableBody.AddCell(bodyContentLeft);
+                bodyContentLeft.Phrase = new Phrase(viewModel.Country, normal_font);
+                tableBody.AddCell(bodyContentLeft);
+                bodyContentLeft.Phrase = new Phrase("H.S.No.", normal_font);
+                tableBody.AddCell(bodyContentLeft);
+                bodyContentLeft.Phrase = new Phrase(": ", normal_font);
+                tableBody.AddCell(bodyContentLeft);
+                bodyContentLeft.Phrase = new Phrase(viewModel.NoHS, normal_font);
+                tableBody.AddCell(bodyContentLeft);
+                bodyContentLeft.Phrase = new Phrase("SYARAT PEMBAYARAN", normal_font);
+                tableBody.AddCell(bodyContentLeft);
+                bodyContentLeft.Phrase = new Phrase(": ", normal_font);
+                tableBody.AddCell(bodyContentLeft);
+                bodyContentLeft.Phrase = new Phrase(viewModel.PaymentDetail, normal_font);
+                tableBody.AddCell(bodyContentLeft);
+                bodyContentLeft.Phrase = new Phrase("PABRIKAN", normal_font);
+                tableBody.AddCell(bodyContentLeft);
+                bodyContentLeft.Phrase = new Phrase(": ", normal_font);
+                tableBody.AddCell(bodyContentLeft);
+                bodyContentLeft.Phrase = new Phrase("PT.AMBASSADOR GARMINDO", normal_font);
+                tableBody.AddCell(bodyContentLeft);
+                bodyContentLeft.Phrase = new Phrase("", normal_font);
+                tableBody.AddCell(bodyContentLeft);
+                bodyContentLeft.Phrase = new Phrase("", normal_font);
+                tableBody.AddCell(bodyContentLeft);
+                bodyContentLeft.Phrase = new Phrase("ALAMAT : KELURAHAN BANARAN, KECAMATAN GROGOL, SUKOHARJO 57193 - INDONESIA", normal_font);
+                tableBody.AddCell(bodyContentLeft);
+                bodyContentLeft.Phrase = new Phrase("PEMBAYARAN KE ALAMAT", normal_font);
+                tableBody.AddCell(bodyContentLeft);
+                bodyContentLeft.Phrase = new Phrase(": ", normal_font);
+                tableBody.AddCell(bodyContentLeft);
+                bodyContentLeft.Phrase = new Phrase(viewModel.AccountBank.BankName, normal_font);
+                tableBody.AddCell(bodyContentLeft);
+                bodyContentLeft.Phrase = new Phrase("", normal_font);
+                tableBody.AddCell(bodyContentLeft);
+                bodyContentLeft.Phrase = new Phrase("", normal_font);
+                tableBody.AddCell(bodyContentLeft);
+                string bankAddress = bank["BankAddress"] != null ? bank["BankAddress"].ToString() : "";
+                bodyContentLeft.Phrase = new Phrase("ALAMAT : " + bankAddress, normal_font);
+                tableBody.AddCell(bodyContentLeft);
+                bodyContentLeft.Phrase = new Phrase("", normal_font);
+                tableBody.AddCell(bodyContentLeft);
+                bodyContentLeft.Phrase = new Phrase("", normal_font);
+                tableBody.AddCell(bodyContentLeft);
+                bodyContentLeft.Phrase = new Phrase("SWIFTCODE : " + bank["SwiftCode"], normal_font);
+                tableBody.AddCell(bodyContentLeft);
+
+                if (!viewModel.IsTTPayment)
+                {
+                    bodyContentLeft.Phrase = new Phrase("LAMPIRAN", normal_font);
+                    tableBody.AddCell(bodyContentLeft);
+                    bodyContentLeft.Phrase = new Phrase(": ", normal_font);
+                    tableBody.AddCell(bodyContentLeft);
+                    bodyContentLeft.Phrase = new Phrase(viewModel.DocPresented, normal_font);
+                    tableBody.AddCell(bodyContentLeft);
+                }
+
+                PdfPCell cellBody = new PdfPCell(tableBody); // dont remove
+                tableBody.ExtendLastRow = false;
+                tableBody.SpacingAfter = 10f;
+                document.Add(tableBody);
+
+                #endregion
+
+                #region REMARKS
+
+                Paragraph remark = new Paragraph("NOTE  : ", bold_font) { Alignment = Element.ALIGN_LEFT };
+                remark.SpacingAfter = 5f;
+                document.Add(remark);
+
+                PdfPTable remarks = new PdfPTable(2);
+                remarks.SetWidths(new float[] { 0.5f, 10f });
+                PdfPCell cell_remark = new PdfPCell() { Border = Rectangle.NO_BORDER, HorizontalAlignment = Element.ALIGN_LEFT, VerticalAlignment = Element.ALIGN_TOP, Padding = 2 };
+
+                cell_remark.Phrase = new Phrase("1)", normal_font);
+                remarks.AddCell(cell_remark);
+                cell_remark.Phrase = new Phrase("PT. AMBASSADOR GARMINDO TIDAK MENERIMA COMPLAINT SETELAH 3 HARI BARANG DITERIMA", normal_font);
+                remarks.AddCell(cell_remark);
+                PdfPCell remarkCell = new PdfPCell(remarks); // dont remove
+                remarks.ExtendLastRow = false;
+                remarks.SpacingAfter = 10f;
+                document.Add(remarks);
+                #endregion
+
+                #region signature
+
+                string LineSeparator = "=============================================================================================================================";
+                Paragraph separator = new Paragraph(LineSeparator, bold_font) { Alignment = Element.ALIGN_CENTER };
+                separator.SpacingAfter = 10f;
+                document.Add(separator);
+
+                PdfPTable sign = new PdfPTable(3);
+                sign.SetWidths(new float[] { 4f,4f,4f });
+                PdfPCell cell_signatureLeft = new PdfPCell() { Border = Rectangle.NO_BORDER, HorizontalAlignment = Element.ALIGN_CENTER, VerticalAlignment = Element.ALIGN_TOP, Padding = 2 };
+                PdfPCell cell_signatureMiddle = new PdfPCell() { Border = Rectangle.NO_BORDER, HorizontalAlignment = Element.ALIGN_CENTER, VerticalAlignment = Element.ALIGN_TOP, Padding = 2 };
+                PdfPCell cell_signatureRight = new PdfPCell() { Border = Rectangle.NO_BORDER, HorizontalAlignment = Element.ALIGN_CENTER, VerticalAlignment = Element.ALIGN_TOP, Padding = 2 };
+
+                cell_signatureLeft.Phrase = new Phrase("KONFIRMASI BUYER :", normal_font);
+                sign.AddCell(cell_signatureLeft);
+                cell_signatureMiddle.Phrase = new Phrase("", normal_font);
+                sign.AddCell(cell_signatureMiddle);
+                cell_signatureRight.Phrase = new Phrase("HORMAT", normal_font);
+                sign.AddCell(cell_signatureRight);
+
+
+                cell_signatureLeft.Phrase = new Phrase("", normal_font);
+                sign.AddCell(cell_signatureLeft);
+                cell_signatureMiddle.Phrase = new Phrase("", normal_font);
+                sign.AddCell(cell_signatureMiddle);
+                cell_signatureRight.Phrase = new Phrase("", normal_font);
+                sign.AddCell(cell_signatureRight);
+
+                cell_signatureLeft.Phrase = new Phrase("", normal_font);
+                sign.AddCell(cell_signatureLeft);
+                cell_signatureMiddle.Phrase = new Phrase("", normal_font);
+                sign.AddCell(cell_signatureMiddle);
+                cell_signatureRight.Phrase = new Phrase("", normal_font);
+                sign.AddCell(cell_signatureRight);
+
+                cell_signatureLeft.Phrase = new Phrase("", normal_font);
+                sign.AddCell(cell_signatureLeft);
+                cell_signatureMiddle.Phrase = new Phrase("", normal_font);
+                sign.AddCell(cell_signatureMiddle);
+                cell_signatureRight.Phrase = new Phrase("", normal_font);
+                sign.AddCell(cell_signatureRight);
+
+                cell_signatureLeft.Phrase = new Phrase("", normal_font);
+                sign.AddCell(cell_signatureLeft);
+                cell_signatureMiddle.Phrase = new Phrase("", normal_font);
+                sign.AddCell(cell_signatureMiddle);
+                cell_signatureRight.Phrase = new Phrase("", normal_font);
+                sign.AddCell(cell_signatureRight);
+
+                cell_signatureLeft.Phrase = new Phrase("", normal_font);
+                sign.AddCell(cell_signatureLeft);
+                cell_signatureMiddle.Phrase = new Phrase("", normal_font);
+                sign.AddCell(cell_signatureMiddle);
+                cell_signatureRight.Phrase = new Phrase("", normal_font);
+                sign.AddCell(cell_signatureRight);
+
+                cell_signatureLeft.Phrase = new Phrase("", normal_font);
+                sign.AddCell(cell_signatureLeft);
+                cell_signatureMiddle.Phrase = new Phrase("", normal_font);
+                sign.AddCell(cell_signatureMiddle);
+                cell_signatureRight.Phrase = new Phrase("", normal_font);
+                sign.AddCell(cell_signatureRight);
+
+                cell_signatureLeft.Phrase = new Phrase("", normal_font);
+                sign.AddCell(cell_signatureLeft);
+                cell_signatureMiddle.Phrase = new Phrase("", normal_font);
+                sign.AddCell(cell_signatureMiddle);
+                cell_signatureRight.Phrase = new Phrase("", normal_font);
+                sign.AddCell(cell_signatureRight);
+
+                cell_signatureLeft.Phrase = new Phrase("", normal_font);
+                sign.AddCell(cell_signatureLeft);
+                cell_signatureMiddle.Phrase = new Phrase("", normal_font);
+                sign.AddCell(cell_signatureMiddle);
+                cell_signatureRight.Phrase = new Phrase("", normal_font);
+                sign.AddCell(cell_signatureRight);
+
+                cell_signatureLeft.Phrase = new Phrase("_______________", normal_font);
+                sign.AddCell(cell_signatureLeft);
+                cell_signatureMiddle.Phrase = new Phrase("", normal_font);
+                sign.AddCell(cell_signatureMiddle);
+                cell_signatureRight.Phrase = new Phrase("_______________", normal_font);
+                sign.AddCell(cell_signatureRight);
+
+                cell_signatureLeft.Phrase = new Phrase(buyer["Name"].ToString().ToUpper(), normal_font);
+                sign.AddCell(cell_signatureLeft);
+                cell_signatureMiddle.Phrase = new Phrase("", normal_font);
+                sign.AddCell(cell_signatureMiddle);
+                cell_signatureRight.Phrase = new Phrase("PT. AMBASSADOR GARMINDO", normal_font);
+                sign.AddCell(cell_signatureRight);
+
+
+                PdfPCell signCell = new PdfPCell(sign); // dont remove
+                sign.ExtendLastRow = false;
+                sign.SpacingAfter = 10f;
+                document.Add(sign);
+                #endregion
+
+                #region LOC
+                if (!viewModel.IsTTPayment)
+                {
+                        document.NewPage();
+                        //document.Add(bankSpace);
+
+                        Paragraph LocTitle = new Paragraph("CONDITION OF LETTER OF CREDIT (L/C)", bold_font) { Alignment = Element.ALIGN_CENTER };
+                        LocTitle.SpacingAfter = 5f;
+                        document.Add(LocTitle);
+
+                        Paragraph loc = new Paragraph("THE FOLLOWING CONDITION ARE REQUESTED TO BE INCLUDED IN YOUR LETTER OF CREDIT. OTHERWISE THERE WILL BE DELAYED IN OUR SHIPMENT BECAUSE OF AMENDMENT WE REQUIRE TO MEET THE INDONESIAN BANKING. \n THEREFORE PLEASE INSTRUCT YOUR BANK TO INCLUDE THE BELOW MENTIONED CONDITIONS IN YOUR LETTER OF CREDIT TO US : ", normal_font) { Alignment = Element.ALIGN_LEFT };
+                        loc.SpacingAfter = 5f;
+                        document.Add(loc);
+
+                        PdfPTable LocList = new PdfPTable(2);
+                        LocList.SetWidths(new float[] { 0.5f, 10f });
+                        PdfPCell cell_loc = new PdfPCell() { Border = Rectangle.NO_BORDER, HorizontalAlignment = Element.ALIGN_LEFT, VerticalAlignment = Element.ALIGN_TOP, Padding = 2 };
+
+                        cell_loc.Phrase = new Phrase("A.", normal_font);
+                        LocList.AddCell(cell_loc);
+                        cell_loc.Phrase = new Phrase(" IRREVOCABLE", normal_font);
+                        LocList.AddCell(cell_loc);
+
+                        cell_loc.Phrase = new Phrase("B.", normal_font);
+                        LocList.AddCell(cell_loc);
+                        cell_loc.Phrase = new Phrase(" TRANSFERABLE OR NEGOTIABLE THROUGH ANY BANK IN INDONESIA", normal_font);
+                        LocList.AddCell(cell_loc);
+
+                        cell_loc.Phrase = new Phrase("C.", normal_font);
+                        LocList.AddCell(cell_loc);
+                        cell_loc.Phrase = new Phrase(" DRAWN AT SIGHT", normal_font);
+                        LocList.AddCell(cell_loc);
+
+
+
+                        cell_loc.Phrase = new Phrase("D.", normal_font);
+                        LocList.AddCell(cell_loc);
+                        cell_loc.Phrase = new Phrase(" BENEFICIARY      : PT. AMBASSADOR GARMINDO \n                                 ADDRESS    : KELURAHAN BANARAN, KECAMATAN GROGOL  \n                                                        SUKOHARJO 57193 - INDONESIA", normal_font);
+                        LocList.AddCell(cell_loc);
+
+
+                        cell_loc.Phrase = new Phrase("E.", normal_font);
+                        LocList.AddCell(cell_loc);
+                        cell_loc.Phrase = new Phrase("ADVISING BANK     : " + bank["BankName"], normal_font);
+                        LocList.AddCell(cell_loc);
+
+
+                        cell_loc.Phrase = new Phrase("F.", normal_font);
+                        LocList.AddCell(cell_loc);
+                        cell_loc.Phrase = new Phrase("CLEARLY STATE     : PARTIAL SHIPMENT ALLOWED / PROHIBITED", normal_font);
+                        LocList.AddCell(cell_loc);
+
+
+                        cell_loc.Phrase = new Phrase("G.", normal_font);
+                        LocList.AddCell(cell_loc);
+                        cell_loc.Phrase = new Phrase("TRANSHIPMENT ALLOWED", normal_font);
+                        LocList.AddCell(cell_loc);
+
+                        cell_loc.Phrase = new Phrase("H.", normal_font);
+                        LocList.AddCell(cell_loc);
+                        cell_loc.Phrase = new Phrase("BILL OF LANDING SHOWING BENEFICIARY AS SHIPPER AND MADE OUT TO THE ORDER OF NEGOTIATING BANK AND TO BE ENDORSED TO THE ORDER OF THE CREDIT OPENING BANK MARKED 'FREIGHT COLLECT' AND NOTIFY ..........................", normal_font);
+                        LocList.AddCell(cell_loc);
+
+                        cell_loc.Phrase = new Phrase("I.", normal_font);
+                        LocList.AddCell(cell_loc);
+                        cell_loc.Phrase = new Phrase("AIRWAY BILL ISSUED AND SIGNED BY THE CARRIER OF HIS AGENT REQUIRED MARKED 'FREIGHT COLLECT' AND NOTIFY.........................", normal_font);
+                        LocList.AddCell(cell_loc);
+
+                        cell_loc.Phrase = new Phrase("J.", normal_font);
+                        LocList.AddCell(cell_loc);
+                        cell_loc.Phrase = new Phrase("FORWARDED BILL OF LANDING", normal_font);
+                        LocList.AddCell(cell_loc);
+
+                        cell_loc.Phrase = new Phrase("K.", normal_font);
+                        LocList.AddCell(cell_loc);
+                        cell_loc.Phrase = new Phrase("EXPIRY DATE: 21 DAYS AFTER LATEST DATE OF SHIPMENT", normal_font);
+                        LocList.AddCell(cell_loc);
+
+                        cell_loc.Phrase = new Phrase("L.", normal_font);
+                        LocList.AddCell(cell_loc);
+                        cell_loc.Phrase = new Phrase("PLUS OR MINUS 5 PERCENT BOTH IN QUANTITY AND AMOUNT ACCEPTABLE", normal_font);
+                        LocList.AddCell(cell_loc);
+
+                        cell_loc.Phrase = new Phrase("M.", normal_font);
+                        LocList.AddCell(cell_loc);
+                        cell_loc.Phrase = new Phrase("DOCUMENTS TO BE PRESENTED WITHIN 21 DAYS AFTER THE DATE OF ISSUANCE BILL OF LANDING / AIRWAY BILL OR OTHER SHIPPING DOCUMENTS (S)", normal_font);
+                        LocList.AddCell(cell_loc);
+
+                        cell_loc.Phrase = new Phrase("N.", normal_font);
+                        LocList.AddCell(cell_loc);
+                        cell_loc.Phrase = new Phrase("SHIPMENT EXECUTED FROM ANY INDONESIA PORT / AIRPORT", normal_font);
+                        LocList.AddCell(cell_loc);
+
+                        cell_loc.Phrase = new Phrase("O.", normal_font);
+                        LocList.AddCell(cell_loc);
+                        cell_loc.Phrase = new Phrase("THIRD PARTY SHIPPER AND DOCUMENTS ARE ACCEPTABLE", normal_font);
+                        LocList.AddCell(cell_loc);
+
+                        cell_loc.Phrase = new Phrase("P.", normal_font);
+                        LocList.AddCell(cell_loc);
+                        cell_loc.Phrase = new Phrase("TELEGRAPHIC TRANSFER REIMBURSEMENT IS ALLOWED", normal_font);
+                        LocList.AddCell(cell_loc);
+                        #region
+                        ////another table
+                        //PdfPTable ALocList = new PdfPTable(2);
+                        //ALocList.SetWidths(new float[] {1f, 5f });
+                        //PdfPCell acell_loc = new PdfPCell() { Border = Rectangle.NO_BORDER, HorizontalAlignment = Element.ALIGN_LEFT, VerticalAlignment = Element.ALIGN_TOP, Padding = 2 };
+
+
+                        //    acell_loc.Phrase = new Phrase(" BENEFICIARY ", normal_font);
+                        //    ALocList.AddCell(acell_loc);
+
+                        //    acell_loc.Phrase = new Phrase(": PT. DAN LIRIS", normal_font);
+                        //    ALocList.AddCell(acell_loc);
+
+                        //    acell_loc.Phrase = new Phrase("  ", normal_font);
+                        //    ALocList.AddCell(acell_loc);
+
+                        //    acell_loc.Phrase = new Phrase("  ADDRESS    : KELURAHAN BANARAN, KECAMATAN GROGOL", normal_font);
+                        //    ALocList.AddCell(acell_loc);
+
+                        //    acell_loc.Phrase = new Phrase("  ", normal_font);
+                        //    ALocList.AddCell(acell_loc);
+
+                        //    acell_loc.Phrase = new Phrase("               KELURAHAN BANARAN, KECAMATAN GROGOL", normal_font);
+                        //    ALocList.AddCell(acell_loc);
+
+                        //    acell_loc.Phrase = new Phrase("ADVISING BANK", normal_font);
+                        //    ALocList.AddCell(acell_loc);
+
+                        //    acell_loc.Phrase = new Phrase(": "+ bank["BankName"], normal_font);
+                        //    ALocList.AddCell(acell_loc);
+
+
+                        //    acell_loc.Phrase = new Phrase("CLEARLY STATE", normal_font);
+                        //    ALocList.AddCell(acell_loc);
+
+                        //    acell_loc.Phrase = new Phrase(": PARTIAL SHIPMENT ALLOWED / PROHIBITED" , normal_font);
+                        //    ALocList.AddCell(acell_loc);
+
+                        //PdfPCell AlocCell = new PdfPCell(LocList); // dont remove
+                        //ALocList.ExtendLastRow = false;
+                        //LocList.AddCell(ALocList);
+                        #endregion
+                        PdfPCell locCell = new PdfPCell(LocList); // dont remove
+                        LocList.ExtendLastRow = false;
+                        LocList.SpacingAfter = 10f;
+                        document.Add(LocList);
+                }
+                #endregion
+
+            } //16-06-2020
 
 
             #region printedON
