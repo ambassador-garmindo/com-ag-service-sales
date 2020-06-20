@@ -39,18 +39,18 @@ namespace Com.Danliris.Service.Sales.WebApi.Controllers
                 return BadRequest(ModelState);
             }
 
-            var model = await _facade.ReadModelByQuantity(Quantity);
-
-            if (model == null)
-            {
-                Dictionary<string, object> Result =
-                    new ResultFormatter(ApiVersion, Common.NOT_FOUND_STATUS_CODE, Common.NOT_FOUND_MESSAGE)
-                    .Fail();
-                return NotFound(Result);
-            }
-
             try
             {
+                var model = await _facade.ReadModelByQuantity(Quantity);
+
+                if (model == null)
+                {
+                    Dictionary<string, object> Result =
+                        new ResultFormatter(ApiVersion, Common.NOT_FOUND_STATUS_CODE, Common.NOT_FOUND_MESSAGE)
+                        .Fail();
+                    return NotFound(Result);
+                }
+
                 return Ok(new
                 {
                     apiVersion = ApiVersion,

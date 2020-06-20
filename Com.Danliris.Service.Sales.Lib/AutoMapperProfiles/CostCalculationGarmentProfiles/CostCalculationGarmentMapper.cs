@@ -70,6 +70,10 @@ namespace Com.Danliris.Service.Sales.Lib.AutoMapperProfiles.CostCalculationGarme
               .ForPath(d => d.ApprovalIE.ApprovedBy, opt => opt.MapFrom(s => s.ApprovedIEBy))
               .ForPath(d => d.ApprovalIE.ApprovedDate, opt => opt.MapFrom(s => s.ApprovedIEDate))
 
+              .ForPath(d => d.ApprovalKadivMD.IsApproved, opt => opt.MapFrom(s => s.IsApprovedKadivMD))
+              .ForPath(d => d.ApprovalKadivMD.ApprovedBy, opt => opt.MapFrom(s => s.ApprovedKadivMDBy))
+              .ForPath(d => d.ApprovalKadivMD.ApprovedDate, opt => opt.MapFrom(s => s.ApprovedKadivMDDate))
+
               .ForPath(d => d.ApprovalPPIC.IsApproved, opt => opt.MapFrom(s => s.IsApprovedPPIC))
               .ForPath(d => d.ApprovalPPIC.ApprovedBy, opt => opt.MapFrom(s => s.ApprovedPPICBy))
               .ForPath(d => d.ApprovalPPIC.ApprovedDate, opt => opt.MapFrom(s => s.ApprovedPPICDate))

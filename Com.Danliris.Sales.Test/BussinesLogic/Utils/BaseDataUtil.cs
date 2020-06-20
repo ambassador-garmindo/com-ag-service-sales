@@ -22,9 +22,9 @@ namespace Com.Danliris.Sales.Test.BussinesLogic.Utils
             return Task.FromResult(Activator.CreateInstance(typeof(TModel)) as TModel);
         }
 
-        public virtual async Task<TModel> GetTestData()
+        public virtual async Task<TModel> GetTestData(TModel model = null)
         {
-            var data = await GetNewData();
+            var data = model ?? await GetNewData();
             await _facade.CreateAsync(data);
             return data;
         }

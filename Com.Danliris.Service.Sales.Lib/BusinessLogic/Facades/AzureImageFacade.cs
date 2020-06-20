@@ -124,6 +124,7 @@ namespace Com.Danliris.Service.Sales.Lib.BusinessLogic.Facades
 			}
 
 			string[] afterPaths = await Task.WhenAll(uploadTasks);
+            
 
 			if (beforeImagePaths != null)
 			{

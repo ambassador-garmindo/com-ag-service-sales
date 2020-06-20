@@ -12,12 +12,14 @@ using System.Threading.Tasks;
 using Microsoft.Extensions.DependencyInjection;
 using Com.Danliris.Service.Sales.Lib.BusinessLogic.Interface;
 using Com.Moonlay.Models;
+using Microsoft.AspNetCore.JsonPatch;
+using Com.Danliris.Service.Sales.Lib.ViewModels.CostCalculationGarment;
 
 namespace Com.Danliris.Service.Sales.Lib.BusinessLogic.Facades.CostCalculationGarments
 {
     public class CostCalculationGarmentFacade : ICostCalculationGarment
 	{
-        private string USER_AGENT = "Facade";
+        private string USER_AGENT = "sales-service";
 
         private readonly SalesDbContext DbContext;
 		private readonly DbSet<CostCalculationGarment> DbSet;
@@ -82,9 +84,7 @@ namespace Com.Danliris.Service.Sales.Lib.BusinessLogic.Facades.CostCalculationGa
                     }
                     while (this.DbSet.Any(d => d.Code.Equals(model.Code)));
 
-                    model.ImagePath = await this.AzureImageFacade.UploadImage(model.GetType().Name, model.Id, model.CreatedUtc, model.ImageFile);
-                    costCalculationGarmentLogic.Create(model);
-                    if (model.ImagePath != null)
+                    if (!string.IsNullOrWhiteSpace(model.ImageFile))
                     {
                         model.ImagePath = await this.AzureImageFacade.UploadImage(model.GetType().Name, model.Id, model.CreatedUtc, model.ImageFile);
                     }
@@ -146,9 +146,8 @@ namespace Com.Danliris.Service.Sales.Lib.BusinessLogic.Facades.CostCalculationGa
 
 		public async Task<int> UpdateAsync(int id, CostCalculationGarment model)
 		{
-            model.ImagePath = await this.AzureImageFacade.UploadImage(model.GetType().Name, model.Id, model.CreatedUtc, model.ImageFile);
             costCalculationGarmentLogic.UpdateAsync(id, model);
-            if (model.ImagePath != null)
+            if (!string.IsNullOrWhiteSpace(model.ImageFile))
             {
                 model.ImagePath = await this.AzureImageFacade.UploadImage(model.GetType().Name, model.Id, model.CreatedUtc, model.ImageFile);
             }
@@ -292,6 +291,28 @@ namespace Com.Danliris.Service.Sales.Lib.BusinessLogic.Facades.CostCalculationGa
             return Updated;
         }
 
+        public async Task<int> Patch(long id, JsonPatchDocument<CostCalculationGarment> jsonPatch)
+        {
+            int Updated = 0;
+
+            using (var transaction = DbContext.Database.BeginTransaction())
+            {
+                try
+                {
+                    costCalculationGarmentLogic.Patch(id, jsonPatch);
+                    Updated = await DbContext.SaveChangesAsync();
+                    transaction.Commit();
+                }
+                catch (Exception e)
+                {
+                    transaction.Rollback();
+                    throw e;
+                }
+            }
+
+            return Updated;
+        }
+
         public async Task<int> PostCC(List<long> listId)
         {
             int Updated = 0;
@@ -331,6 +352,32 @@ namespace Com.Danliris.Service.Sales.Lib.BusinessLogic.Facades.CostCalculationGa
                 }
             }
             return Updated;
+        }
+		public CostCalculationGarmentDataProductionReport GetComodityQtyOrderHoursBuyerByRo(string ro)
+		{
+			return costCalculationGarmentLogic.GetComodityQtyOrderHoursBuyerByRo(ro);
+
+		}
+		public List<string> ReadUnpostReasonCreators(string keyword, int page, int size)
+        {
+            return costCalculationGarmentLogic.ReadUnpostReasonCreators(keyword, page, size);
+        }
+
+        public ReadResponse<dynamic> ReadDynamic(int page, int size, string order, string select, string keyword, string filter, string search)
+        {
+            return costCalculationGarmentLogic.ReadDynamic(page, size, order, select, keyword, filter, search);
+        }
+
+        public ReadResponse<dynamic> ReadMaterials(int page, int size, string order, string select, string keyword, string filter, string search)
+        {
+            CostCalculationGarmentMaterialLogic costCalculationGarmentMaterialLogic = ServiceProvider.GetService<CostCalculationGarmentMaterialLogic>();
+            return costCalculationGarmentMaterialLogic.ReadMaterials(page, size, order, select, keyword, filter, search);
+        }
+
+        public ReadResponse<dynamic> ReadMaterialsByPRMasterItemIds(int page, int size, string order, string select, string keyword, string filter, string search, string prmasteritemids)
+        {
+            CostCalculationGarmentMaterialLogic costCalculationGarmentMaterialLogic = ServiceProvider.GetService<CostCalculationGarmentMaterialLogic>();
+            return costCalculationGarmentMaterialLogic.ReadMaterialsByPRMasterItemIds(page, size, order, select, keyword, filter, search, prmasteritemids);
         }
     }
 }

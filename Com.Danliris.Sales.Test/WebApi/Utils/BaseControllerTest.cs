@@ -58,7 +58,7 @@ namespace Com.Danliris.Sales.Test.WebApi.Utils
         }
 
 
-        protected TController GetController((Mock<IIdentityService> IdentityService, Mock<IValidateService> ValidateService, Mock<IFacade> Facade, Mock<IMapper> Mapper, Mock<IServiceProvider> ServiceProvider) mocks)
+        protected virtual TController GetController((Mock<IIdentityService> IdentityService, Mock<IValidateService> ValidateService, Mock<IFacade> Facade, Mock<IMapper> Mapper, Mock<IServiceProvider> ServiceProvider) mocks)
         {
             var user = new Mock<ClaimsPrincipal>();
             var claims = new Claim[]
@@ -94,7 +94,7 @@ namespace Com.Danliris.Sales.Test.WebApi.Utils
         }
 
         [Fact]
-        public void Get_WithoutException_ReturnOK()
+        public virtual void Get_WithoutException_ReturnOK()
         {
             var mocks = this.GetMocks();
             mocks.Facade.Setup(f => f.Read(It.IsAny<int>(), It.IsAny<int>(), It.IsAny<string>(), It.IsAny<List<string>>(), It.IsAny<string>(), It.IsAny<string>())).Returns(new ReadResponse<TModel>(new List<TModel>(), 0, new Dictionary<string, string>(), new List<string>()));
@@ -163,7 +163,7 @@ namespace Com.Danliris.Sales.Test.WebApi.Utils
         }
 
         [Fact]
-        public async Task GetById_NotNullModel_ReturnOK()
+        public virtual async Task GetById_NotNullModel_ReturnOK()
         {
             var mocks = this.GetMocks();
             mocks.Facade.Setup(f => f.ReadByIdAsync(It.IsAny<int>())).ReturnsAsync(this.Model);
@@ -174,7 +174,7 @@ namespace Com.Danliris.Sales.Test.WebApi.Utils
         }
 
         [Fact]
-        public async Task GetById_NullModel_ReturnNotFound()
+        public virtual async Task GetById_NullModel_ReturnNotFound()
         {
             var mocks = this.GetMocks();
             mocks.Mapper.Setup(f => f.Map<TViewModel>(It.IsAny<TModel>())).Returns(this.ViewModel);
@@ -185,7 +185,7 @@ namespace Com.Danliris.Sales.Test.WebApi.Utils
         }
 
         [Fact]
-        public async Task GetById_ThrowException_ReturnInternalServerError()
+        public virtual async Task GetById_ThrowException_ReturnInternalServerError()
         {
             var mocks = this.GetMocks();
             mocks.Facade.Setup(f => f.ReadByIdAsync(It.IsAny<int>())).ThrowsAsync(new Exception());

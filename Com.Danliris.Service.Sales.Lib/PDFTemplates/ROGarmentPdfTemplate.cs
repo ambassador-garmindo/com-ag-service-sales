@@ -1,4 +1,5 @@
 ﻿using Com.Danliris.Service.Sales.Lib.Helpers;
+using Com.Danliris.Service.Sales.Lib.Utilities;
 using Com.Danliris.Service.Sales.Lib.ViewModels.GarmentROViewModels;
 using iTextSharp.text;
 using iTextSharp.text.pdf;
@@ -18,31 +19,26 @@ namespace Com.Danliris.Service.Sales.Lib.PDFTemplates
             MemoryStream stream = new MemoryStream();
             Document document = new Document(PageSize.A4, 10, 10, 10, 10);
             PdfWriter writer = PdfWriter.GetInstance(document, stream);
-            writer.CloseStream = false;
+
+            writer.PageEvent = new ROGarmentPdfTemplatePageEvent();
+
             document.Open();
-            PdfContentByte cb = writer.DirectContent;
+
             //set content configuration
-            BaseFont bf = BaseFont.CreateFont(BaseFont.HELVETICA, BaseFont.CP1250, BaseFont.NOT_EMBEDDED);
-            BaseFont bf_bold = BaseFont.CreateFont(BaseFont.HELVETICA_BOLD, BaseFont.CP1250, BaseFont.NOT_EMBEDDED);
+            Font company_font = FontFactory.GetFont(BaseFont.HELVETICA, BaseFont.CP1250, BaseFont.NOT_EMBEDDED, 10);
+            Font title_font = FontFactory.GetFont(BaseFont.HELVETICA_BOLD, BaseFont.CP1250, BaseFont.NOT_EMBEDDED, 12);
             Font normal_font = FontFactory.GetFont(BaseFont.HELVETICA, BaseFont.CP1250, BaseFont.NOT_EMBEDDED, 7);
             Font bold_font = FontFactory.GetFont(BaseFont.HELVETICA_BOLD, BaseFont.CP1250, BaseFont.NOT_EMBEDDED, 7);
-            Font bold_font_8 = FontFactory.GetFont(BaseFont.HELVETICA_BOLD, BaseFont.CP1250, BaseFont.NOT_EMBEDDED, 8);
-            Font font_9 = FontFactory.GetFont(BaseFont.HELVETICA, BaseFont.CP1250, BaseFont.NOT_EMBEDDED, 9);
-            DateTime now = DateTime.Now;
-            float margin = 10;
-            float printedOnHeight = 10;
-            float startY = 840 - margin;
 
             #region Header
-            cb.BeginText();
-            cb.SetFontAndSize(bf, 10);
-            cb.ShowTextAligned(PdfContentByte.ALIGN_LEFT, "PT. DANLIRIS", 10, 820, 0);
-            cb.SetFontAndSize(bf_bold, 12);
-            cb.ShowTextAligned(PdfContentByte.ALIGN_LEFT, "RO EKSPOR GARMENT", 10, 805, 0);
-            cb.EndText();
+            document.Add(new Paragraph("PT.AMBASSADOR GARMINDO", company_font) { Alignment = Element.ALIGN_LEFT, Leading = 0, MultipliedLeading = 1 });
+            document.Add(new Paragraph("RO GARMENT", title_font) { Alignment = Element.ALIGN_LEFT, Leading = 0, MultipliedLeading = 1 });
             #endregion
 
             #region Top
+            PdfPTable table_top_with_images = new PdfPTable(2);
+            table_top_with_images.SetWidths(new float[] { 5f, 0.7f });
+
             PdfPTable table_top = new PdfPTable(9);
             float[] top_widths = new float[] { 1f, 0.1f, 2f, 1f, 0.1f, 2f, 1.2f, 0.1f, 2f };
 
@@ -78,54 +74,85 @@ namespace Com.Danliris.Service.Sales.Lib.PDFTemplates
             };
 
             cell_colon.Phrase = new Phrase(":", normal_font);
+
             cell_top.Phrase = new Phrase("NO RO", normal_font);
             table_top.AddCell(cell_top);
             table_top.AddCell(cell_colon);
-
             cell_top.Phrase = new Phrase($"{viewModel.CostCalculationGarment.RO_Number}", normal_font);
             table_top.AddCell(cell_top);
+
             cell_top.Phrase = new Phrase("SECTION", normal_font);
             table_top.AddCell(cell_top);
             table_top.AddCell(cell_colon);
             cell_top.Phrase = new Phrase($"{viewModel.CostCalculationGarment.Section}", normal_font);
             table_top.AddCell(cell_top);
-            cell_top.Phrase = new Phrase("DATE", normal_font);
+
+            cell_top.Phrase = new Phrase("CREATED DATE", normal_font);
             table_top.AddCell(cell_top);
             table_top.AddCell(cell_colon);
             cell_top.Phrase = new Phrase($"{viewModel.CostCalculationGarment.ConfirmDate.AddHours(offset).ToString("dd MMMM yyyy")}", normal_font);
             table_top.AddCell(cell_top);
 
-            cell_top.Phrase = new Phrase("Konveksi", normal_font);
+            cell_top.Phrase = new Phrase("ARTIKEL", normal_font);
             table_top.AddCell(cell_top);
             table_top.AddCell(cell_colon);
-            cell_top.Phrase = new Phrase($"{viewModel.CostCalculationGarment.Unit.Code}", normal_font);
+            cell_top.Phrase = new Phrase($"{viewModel.CostCalculationGarment.Article}", normal_font);
             table_top.AddCell(cell_top);
+
             cell_top.Phrase = new Phrase("BUYER", normal_font);
             table_top.AddCell(cell_top);
             table_top.AddCell(cell_colon);
             cell_top.Phrase = new Phrase($"{viewModel.CostCalculationGarment.BuyerBrand.Name}", normal_font);
             table_top.AddCell(cell_top);
+
             cell_top.Phrase = new Phrase("DELIVERY DATE", normal_font);
             table_top.AddCell(cell_top);
             table_top.AddCell(cell_colon);
-            cell_top.Phrase = new Phrase($"{viewModel.CostCalculationGarment.DeliveryDate.AddHours(offset).ToString("dd MMMM yyyy")}", normal_font);
+            cell_top.Phrase = new Phrase($"{viewModel.CostCalculationGarment.DeliveryDate.ToOffset(new TimeSpan(offset, 0, 0)).ToString("dd MMMM yyyy")}", normal_font);
             table_top.AddCell(cell_top);
 
-            cell_top.Phrase = new Phrase("DESC", normal_font);
+            cell_top.Phrase = new Phrase("KONVEKSI", normal_font);
             table_top.AddCell(cell_top);
             table_top.AddCell(cell_colon);
-            cell_top.Phrase = new Phrase($"{viewModel.CostCalculationGarment.Description}", normal_font);
+            cell_top.Phrase = new Phrase($"{viewModel.CostCalculationGarment.Unit.Code}", normal_font);
             table_top.AddCell(cell_top);
+
             cell_top.Phrase = new Phrase("QUANTITY", normal_font);
             table_top.AddCell(cell_top);
             table_top.AddCell(cell_colon);
             cell_top.Phrase = new Phrase($"{viewModel.Total.ToString()} {viewModel.CostCalculationGarment.UOM.Unit}" , normal_font);
             table_top.AddCell(cell_top);
+
             cell_top.Phrase = new Phrase("SIZE RANGE", normal_font);
             table_top.AddCell(cell_top);
             table_top.AddCell(cell_colon);
             cell_top.Phrase = new Phrase($"{viewModel.CostCalculationGarment.SizeRange}", normal_font);
             table_top.AddCell(cell_top);
+
+            cell_top.Phrase = new Phrase("DESC", normal_font);
+            table_top.AddCell(cell_top);
+            table_top.AddCell(cell_colon);
+            cell_top.Phrase = new Phrase($"{viewModel.CostCalculationGarment.CommodityDescription}", normal_font);
+            table_top.AddCell(cell_top);
+
+            cell_top.Phrase = new Phrase("", normal_font);
+
+            table_top.AddCell(cell_top);
+            table_top.AddCell(cell_top);
+            table_top.AddCell(cell_top);
+
+            table_top.AddCell(cell_top);
+            table_top.AddCell(cell_top);
+            table_top.AddCell(cell_top);
+
+            table_top.LockedWidth = true;
+            table_top.HorizontalAlignment = Element.ALIGN_LEFT;
+            table_top.ExtendLastRow = false;
+
+            table_top_with_images.AddCell(new PdfPCell(table_top)
+            {
+                Border = Rectangle.NO_BORDER
+            });
 
             byte[] imageByte;
             try
@@ -134,8 +161,9 @@ namespace Com.Danliris.Service.Sales.Lib.PDFTemplates
             }
             catch (Exception)
             {
-                var webClient = new WebClient();
-                imageByte = webClient.DownloadData("http://babakunyho.eu/img/default-no-image.png");
+                //var webClient = new WebClient();
+                //imageByte = webClient.DownloadData("https://bellamozzarella.files.wordpress.com/2013/07/blank-canvas1.jpg");
+                imageByte = Convert.FromBase64String("/9j/4AAQSkZJRgABAQAAAQABAAD/2wCEAA0NDQ0ODQ4QEA4UFhMWFB4bGRkbHi0gIiAiIC1EKjIqKjIqRDxJOzc7STxsVUtLVWx9aWNpfZeHh5e+tb75+f8BDQ0NDQ4NDhAQDhQWExYUHhsZGRseLSAiICIgLUQqMioqMipEPEk7NztJPGxVS0tVbH1pY2l9l4eHl761vvn5///CABEIAAoACgMBIgACEQEDEQH/xAAVAAEBAAAAAAAAAAAAAAAAAAAAB//aAAgBAQAAAACnD//EABQBAQAAAAAAAAAAAAAAAAAAAAD/2gAIAQIQAAAAf//EABQBAQAAAAAAAAAAAAAAAAAAAAD/2gAIAQMQAAAAf//EABQQAQAAAAAAAAAAAAAAAAAAACD/2gAIAQEAAT8AH//EABQRAQAAAAAAAAAAAAAAAAAAAAD/2gAIAQIBAT8Af//EABQRAQAAAAAAAAAAAAAAAAAAAAD/2gAIAQMBAT8Af//Z");
             }
 
             Image image = Image.GetInstance(imgb: imageByte);
@@ -150,9 +178,15 @@ namespace Com.Danliris.Service.Sales.Lib.PDFTemplates
             float row1Y = 800;
             float imageY = 800 - image.ScaledHeight;
 
-            image.SetAbsolutePosition(520, imageY);
-            cb.AddImage(image, inlineImage: true);
-            table_top.WriteSelectedRows(0, -1, 10, row1Y, cb);
+            table_top_with_images.AddCell(new PdfPCell(image)
+            {
+                Border = Rectangle.NO_BORDER
+            });
+
+            PdfPCell cell_table_top_with_images = new PdfPCell(table_top_with_images);
+            table_top_with_images.SpacingBefore = 5f;
+            table_top_with_images.ExtendLastRow = false;
+            document.Add(table_top_with_images);
             #endregion
 
             #region Table Fabric
@@ -176,10 +210,11 @@ namespace Com.Danliris.Service.Sales.Lib.PDFTemplates
             cell_top_fabric.Phrase = new Phrase("FABRIC", bold_font);
             table_fabric_top.AddCell(cell_top_fabric);
 
-            float row1Height = image.ScaledHeight > table_top.TotalHeight ? image.ScaledHeight : table_top.TotalHeight;
-            float rowYTittleFab = row1Y - row1Height - 10;
-            float allowedRow2Height = rowYTittleFab - printedOnHeight - margin;
-            table_fabric_top.WriteSelectedRows(0, -1, 10, rowYTittleFab, cb);
+            table_fabric_top.LockedWidth = true;
+            table_fabric_top.HorizontalAlignment = Element.ALIGN_LEFT;
+            table_fabric_top.SpacingBefore = 5f;
+            table_fabric_top.ExtendLastRow = false;
+            document.Add(table_fabric_top);
 
             //Main fabric table
             PdfPTable table_fabric = new PdfPTable(8);
@@ -203,9 +238,6 @@ namespace Com.Danliris.Service.Sales.Lib.PDFTemplates
                 VerticalAlignment = Element.ALIGN_MIDDLE,
                 Padding = 2
             };
-
-            float rowYFab = rowYTittleFab - table_fabric_top.TotalHeight - 5;
-            float allowedRow2HeightFab = rowYFab - printedOnHeight - margin;
 
             //cell_fabric_center.Phrase = new Phrase("FABRIC", bold_font);
             //table_fabric.AddCell(cell_fabric_center);
@@ -267,7 +299,13 @@ namespace Com.Danliris.Service.Sales.Lib.PDFTemplates
                     table_fabric.AddCell(cell_fabric_left);
                 }
             }
-            table_fabric.WriteSelectedRows(0, -1, 10, rowYFab, cb);
+
+            table_fabric.LockedWidth = true;
+            table_fabric.HorizontalAlignment = Element.ALIGN_LEFT;
+            table_fabric.SpacingBefore = 5f;
+            table_fabric.ExtendLastRow = false;
+            document.Add(table_fabric);
+            
             #endregion
 
             #region Table Accessories
@@ -291,15 +329,17 @@ namespace Com.Danliris.Service.Sales.Lib.PDFTemplates
             cell_top_acc.Phrase = new Phrase("ACCESSORIES", bold_font);
             table_acc_top.AddCell(cell_top_acc);
 
-            float rowYTittleAcc = rowYFab - table_fabric.TotalHeight - 10;
-            float allowedRow2HeightTopAcc = rowYTittleFab - printedOnHeight - margin;
-            table_acc_top.WriteSelectedRows(0, -1, 10, rowYTittleAcc, cb);
+            table_acc_top.LockedWidth = true;
+            table_acc_top.HorizontalAlignment = Element.ALIGN_LEFT;
+            table_acc_top.SpacingBefore = 5f;
+            table_acc_top.ExtendLastRow = false;
+            document.Add(table_acc_top);
 
             //Main Accessories Table
-            PdfPTable table_accessories = new PdfPTable(8);
+            PdfPTable table_accessories = new PdfPTable(5);
             table_accessories.TotalWidth = 570f;
 
-            float[] accessories_widths = new float[] { 5f, 5f, 5f, 5f, 5f, 5f, 5f, 5f };
+            float[] accessories_widths = new float[] { 2f, 3f, 5f, 2.5f, 7.5f };
             table_accessories.SetWidths(accessories_widths);
 
             PdfPCell cell_acc_center = new PdfPCell()
@@ -318,25 +358,13 @@ namespace Com.Danliris.Service.Sales.Lib.PDFTemplates
                 Padding = 2
             };
 
-            float rowYAcc = rowYTittleAcc - table_fabric_top.TotalHeight - 5;
-            float allowedRow2HeightAcc = rowYAcc - printedOnHeight - margin;
-
             //cell_acc_center.Phrase = new Phrase("ACCESSORIES", bold_font);
             //table_accessories.AddCell(cell_acc_center);
 
             cell_fabric_center.Phrase = new Phrase("PRODUCT CODE", bold_font);
             table_accessories.AddCell(cell_fabric_center);
 
-            cell_fabric_center.Phrase = new Phrase("COMPOSITION", bold_font);
-            table_accessories.AddCell(cell_fabric_center);
-
-            cell_fabric_center.Phrase = new Phrase("CONSTRUCTION", bold_font);
-            table_accessories.AddCell(cell_fabric_center);
-
-            cell_fabric_center.Phrase = new Phrase("YARN", bold_font);
-            table_accessories.AddCell(cell_fabric_center);
-
-            cell_fabric_center.Phrase = new Phrase("WIDTH", bold_font);
+            cell_fabric_center.Phrase = new Phrase("PRODUCT NAME", bold_font);
             table_accessories.AddCell(cell_fabric_center);
 
             cell_acc_center.Phrase = new Phrase("DESCRIPTION", bold_font);
@@ -356,17 +384,7 @@ namespace Com.Danliris.Service.Sales.Lib.PDFTemplates
                     cell_acc_left.Phrase = new Phrase(materialModel.Product.Code, normal_font);
                     table_accessories.AddCell(cell_acc_left);
 
-                    cell_acc_left.Phrase = new Phrase(materialModel.Product.Composition, normal_font);
-                    table_accessories.AddCell(cell_acc_left);
-
-                    cell_acc_left.Phrase = new Phrase(materialModel.Product.Const, normal_font);
-                    table_accessories.AddCell(cell_acc_left);
-
-                    cell_acc_left.Phrase = new Phrase(materialModel.Product.Yarn, normal_font);
-                    table_accessories.AddCell(cell_acc_left);
-
-                    cell_acc_left.Phrase = new Phrase(materialModel.Product.Width, normal_font);
-
+                    cell_acc_left.Phrase = new Phrase(materialModel.Product.Name, normal_font);
                     table_accessories.AddCell(cell_acc_left);
 
                     cell_acc_left.Phrase = new Phrase(materialModel.Description != null ? materialModel.Description : "", normal_font);
@@ -379,7 +397,13 @@ namespace Com.Danliris.Service.Sales.Lib.PDFTemplates
                     table_accessories.AddCell(cell_acc_left);
                 }
             }
-            table_accessories.WriteSelectedRows(0, -1, 10, rowYAcc, cb);
+
+            table_accessories.LockedWidth = true;
+            table_accessories.HorizontalAlignment = Element.ALIGN_LEFT;
+            table_accessories.SpacingBefore = 5f;
+            table_accessories.ExtendLastRow = false;
+            document.Add(table_accessories);
+
             #endregion
 
 
@@ -404,15 +428,17 @@ namespace Com.Danliris.Service.Sales.Lib.PDFTemplates
             cell_top_breakdown.Phrase = new Phrase("SIZE BREAKDOWN", bold_font);
             table_breakdown_top.AddCell(cell_top_breakdown);
 
-            float rowYTittleBreakDown = rowYAcc - table_accessories.TotalHeight - 10;
-            float allowedRow2HeightBreakdown = rowYTittleBreakDown - printedOnHeight - margin;
-            table_breakdown_top.WriteSelectedRows(0, -1, 10, rowYTittleBreakDown, cb);
+            table_breakdown_top.LockedWidth = true;
+            table_breakdown_top.HorizontalAlignment = Element.ALIGN_LEFT;
+            table_breakdown_top.SpacingBefore = 5f;
+            table_breakdown_top.ExtendLastRow = false;
+            document.Add(table_breakdown_top);
 
             //Main Table Size Breakdown
             PdfPTable table_breakDown = new PdfPTable(2);
             table_breakDown.TotalWidth = 570f;
 
-            float[] breakDown_widths = new float[] { 5f, 10f };
+            float[] breakDown_widths = new float[] { 3f, 12f };
             table_breakDown.SetWidths(breakDown_widths);
 
             PdfPCell cell_breakDown_center = new PdfPCell()
@@ -447,10 +473,6 @@ namespace Com.Danliris.Service.Sales.Lib.PDFTemplates
                 Padding = 2
             };
 
-            float rowYbreakDown = rowYTittleBreakDown - table_breakdown_top.TotalHeight - 5;
-            float allowedRow2HeightBreakDown = rowYbreakDown - printedOnHeight - margin;
-            var remainingRowToHeightBrekdown = rowYbreakDown - 5 - printedOnHeight - margin;
-
             cell_breakDown_center.Phrase = new Phrase("WARNA", bold_font);
             table_breakDown.AddCell(cell_breakDown_center);
 
@@ -467,7 +489,7 @@ namespace Com.Danliris.Service.Sales.Lib.PDFTemplates
                     PdfPTable table_breakDown_child = new PdfPTable(3);
                     table_breakDown_child.TotalWidth = 300f;
 
-                    float[] breakDown_child_widths = new float[] { 5f, 5f, 5f };
+                    float[] breakDown_child_widths = new float[] { 9f, 3f, 3f };
                     table_breakDown_child.SetWidths(breakDown_child_widths);
 
                     PdfPCell cell_breakDown_child_center = new PdfPCell()
@@ -517,31 +539,7 @@ namespace Com.Danliris.Service.Sales.Lib.PDFTemplates
                     cell_breakDown_child_left.Phrase = new Phrase(productRetail.Total.ToString() != null ? productRetail.Total.ToString() : "0", normal_font);
                     table_breakDown_child.AddCell(cell_breakDown_child_left);
 
-                    table_breakDown_child.WriteSelectedRows(0, -1, 10, 0, cb);
-
                     table_breakDown.AddCell(table_breakDown_child);
-                }
-
-                var tableBreakdownCurrentHeight = table_breakDown.TotalHeight;
-
-                if (tableBreakdownCurrentHeight / remainingRowToHeightBrekdown > 1)
-                {
-                    if (tableBreakdownCurrentHeight / allowedRow2HeightBreakDown > 1)
-                    {
-                        PdfPRow headerRow = table_breakDown.GetRow(0);
-                        PdfPRow lastRow = table_breakDown.GetRow(table_breakDown.Rows.Count - 1);
-                        table_breakDown.DeleteLastRow();
-                        table_breakDown.WriteSelectedRows(0, -1, 10, rowYbreakDown, cb);
-                        table_breakDown.DeleteBodyRows();
-                        this.DrawPrintedOn(now, bf, cb);
-                        document.NewPage();
-                        table_breakDown.Rows.Add(headerRow);
-                        table_breakDown.Rows.Add(lastRow);
-                        table_breakDown.CalculateHeights(true);
-                        rowYbreakDown = startY;
-                        remainingRowToHeightBrekdown = rowYbreakDown - 5 - printedOnHeight - margin;
-                        allowedRow2HeightBreakDown = remainingRowToHeightBrekdown - printedOnHeight - margin;
-                    }
                 }
             }
 
@@ -551,7 +549,11 @@ namespace Com.Danliris.Service.Sales.Lib.PDFTemplates
             cell_breakDown_total_2.Phrase = new Phrase(viewModel.Total.ToString(), bold_font);
             table_breakDown.AddCell(cell_breakDown_total_2);
 
-            table_breakDown.WriteSelectedRows(0, -1, 10, rowYbreakDown, cb);
+            table_breakDown.LockedWidth = true;
+            table_breakDown.HorizontalAlignment = Element.ALIGN_LEFT;
+            table_breakDown.SpacingBefore = 5f;
+            table_breakDown.ExtendLastRow = false;
+            document.Add(table_breakDown);
             #endregion
 
             #region Table Instruksi
@@ -596,10 +598,12 @@ namespace Com.Danliris.Service.Sales.Lib.PDFTemplates
             cell_top_keterangan_instruction.Phrase = new Phrase($"{viewModel.Instruction}", normal_font);
             table_instruction.AddCell(cell_top_keterangan_instruction);
 
-            float rowYInstruction = rowYbreakDown - table_breakDown.TotalHeight - 10;
-            float allowedRow2HeightInstruction = rowYInstruction - printedOnHeight - margin;
+            table_instruction.LockedWidth = true;
+            table_instruction.HorizontalAlignment = Element.ALIGN_LEFT;
+            table_instruction.SpacingBefore = 5f;
+            table_instruction.ExtendLastRow = false;
+            document.Add(table_instruction);
 
-            table_instruction.WriteSelectedRows(0, -1, 10, rowYInstruction, cb);
             #endregion
 
             #region RO Image
@@ -611,9 +615,6 @@ namespace Com.Danliris.Service.Sales.Lib.PDFTemplates
                 countImageRo++;
             }
 
-
-            float rowYRoImage = rowYInstruction - table_instruction.TotalHeight - 10;
-            float imageRoHeight;
 
             if (countImageRo != 0)
             {
@@ -645,8 +646,9 @@ namespace Com.Danliris.Service.Sales.Lib.PDFTemplates
                     }
                     catch (Exception)
                     {
-                        var webClient = new WebClient();
-                        roImage = webClient.DownloadData("https://bateeqstorage.blob.core.windows.net/other/no-image.jpg");
+                        //var webClient = new WebClient();
+                        //roImage = webClient.DownloadData("https://bateeqstorage.blob.core.windows.net/other/no-image.jpg");
+                        roImage = Convert.FromBase64String("/9j/4AAQSkZJRgABAQAAAQABAAD/2wCEAA0NDQ0ODQ4QEA4UFhMWFB4bGRkbHi0gIiAiIC1EKjIqKjIqRDxJOzc7STxsVUtLVWx9aWNpfZeHh5e+tb75+f8BDQ0NDQ4NDhAQDhQWExYUHhsZGRseLSAiICIgLUQqMioqMipEPEk7NztJPGxVS0tVbH1pY2l9l4eHl761vvn5///CABEIAAoACgMBIgACEQEDEQH/xAAVAAEBAAAAAAAAAAAAAAAAAAAAB//aAAgBAQAAAACnD//EABQBAQAAAAAAAAAAAAAAAAAAAAD/2gAIAQIQAAAAf//EABQBAQAAAAAAAAAAAAAAAAAAAAD/2gAIAQMQAAAAf//EABQQAQAAAAAAAAAAAAAAAAAAACD/2gAIAQEAAT8AH//EABQRAQAAAAAAAAAAAAAAAAAAAAD/2gAIAQIBAT8Af//EABQRAQAAAAAAAAAAAAAAAAAAAAD/2gAIAQMBAT8Af//Z");
                     }
 
                     Image images = Image.GetInstance(imgb: roImage);
@@ -677,20 +679,19 @@ namespace Com.Danliris.Service.Sales.Lib.PDFTemplates
                     table_ro_image.AddCell(cell_image);
                 }
 
-                imageRoHeight = table_ro_image.TotalHeight;
-                table_ro_image.WriteSelectedRows(0, -1, 10, rowYRoImage, cb);
-            }
-            else
-            {
-                imageRoHeight = 0;
+                table_ro_image.LockedWidth = true;
+                table_ro_image.HorizontalAlignment = Element.ALIGN_LEFT;
+                table_ro_image.SpacingBefore = 5f;
+                table_ro_image.ExtendLastRow = false;
+                document.Add(table_ro_image);
             }
             #endregion
 
             #region Signature
-            PdfPTable table_signature = new PdfPTable(6);
+            PdfPTable table_signature = new PdfPTable(2);
             table_signature.TotalWidth = 570f;
 
-            float[] signature_widths = new float[] { 1f, 1f, 1f, 1f, 1f, 1f };
+            float[] signature_widths = new float[] { 1f, 1f };
             table_signature.SetWidths(signature_widths);
 
             PdfPCell cell_signature = new PdfPCell()
@@ -710,37 +711,24 @@ namespace Com.Danliris.Service.Sales.Lib.PDFTemplates
                 PaddingTop = 50
             };
 
-            cell_signature.Phrase = new Phrase("Dibuat", normal_font);
+            cell_signature.Phrase = new Phrase("Bagian Penjualan", normal_font);
             table_signature.AddCell(cell_signature);
-            cell_signature.Phrase = new Phrase("Kasie Merchandiser", normal_font);
-            table_signature.AddCell(cell_signature);
-            cell_signature.Phrase = new Phrase("R & D", normal_font);
-            table_signature.AddCell(cell_signature);
-            cell_signature.Phrase = new Phrase("Ka Produksi", normal_font);
-            table_signature.AddCell(cell_signature);
-            cell_signature.Phrase = new Phrase("Mengetahui", normal_font);
-            table_signature.AddCell(cell_signature);
-            cell_signature.Phrase = new Phrase("Menyetujui", normal_font);
+            cell_signature.Phrase = new Phrase("Kasie/Kabag Penjualan", normal_font);
             table_signature.AddCell(cell_signature);
 
-            cell_signature_noted.Phrase = new Phrase("(                           )", normal_font);
+            cell_signature_noted.Phrase = new Phrase("(                                         )", normal_font);
             table_signature.AddCell(cell_signature_noted);
-            cell_signature_noted.Phrase = new Phrase("(                           )", normal_font);
-            table_signature.AddCell(cell_signature_noted);
-            cell_signature_noted.Phrase = new Phrase("(                           )", normal_font);
-            table_signature.AddCell(cell_signature_noted);
-            cell_signature_noted.Phrase = new Phrase("(                           )", normal_font);
-            table_signature.AddCell(cell_signature_noted);
-            cell_signature_noted.Phrase = new Phrase("(                           )", normal_font);
-            table_signature.AddCell(cell_signature_noted);
-            cell_signature_noted.Phrase = new Phrase("(Michelle Tjokrosaputro)", normal_font);
+            cell_signature_noted.Phrase = new Phrase("(                                         )", normal_font);
             table_signature.AddCell(cell_signature_noted);
 
-            float table_signatureY = rowYRoImage - imageRoHeight - 10;
-            table_signature.WriteSelectedRows(0, -1, 10, table_signatureY, cb);
+            table_signature.LockedWidth = true;
+            table_signature.HorizontalAlignment = Element.ALIGN_LEFT;
+            table_signature.SpacingBefore = 5f;
+            table_signature.ExtendLastRow = false;
+            document.Add(table_signature);
+            
             #endregion
 
-            this.DrawPrintedOn(now, bf, cb);
             document.Close();
 
             byte[] byteInfo = stream.ToArray();
@@ -749,11 +737,18 @@ namespace Com.Danliris.Service.Sales.Lib.PDFTemplates
             return stream;
         }
 
-        private void DrawPrintedOn(DateTime now, BaseFont bf, PdfContentByte cb)
+    }
+
+    class ROGarmentPdfTemplatePageEvent : PDFPages
+    {
+        public override void OnStartPage(PdfWriter writer, Document document)
         {
+            BaseFont bf = BaseFont.CreateFont(BaseFont.HELVETICA, BaseFont.CP1250, BaseFont.NOT_EMBEDDED);
+
+            PdfContentByte cb = writer.DirectContent;
             cb.BeginText();
             cb.SetFontAndSize(bf, 6);
-            cb.ShowTextAligned(PdfContentByte.ALIGN_LEFT, "Printed on: " + now.ToString("dd/MM/yyyy | HH:mm"), 10, 10, 0);
+            cb.ShowTextAligned(PdfContentByte.ALIGN_LEFT, "Printed on: " + DateTime.Now.ToString("dd/MM/yyyy | HH:mm"), 10, 10, 0);
             cb.EndText();
         }
     }

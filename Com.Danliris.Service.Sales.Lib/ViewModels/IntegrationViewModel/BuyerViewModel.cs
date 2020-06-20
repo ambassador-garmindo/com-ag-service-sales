@@ -22,5 +22,7 @@ namespace Com.Danliris.Service.Sales.Lib.ViewModels.IntegrationViewModel
         public string Country { get; set; }
         [MaxLength(255)]
         public string Contact { get; set; }
+        [MaxLength(255)]
+        public string NPWP { get; set; }
     }
 }

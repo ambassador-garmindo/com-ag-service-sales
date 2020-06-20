@@ -62,7 +62,7 @@ namespace Com.Danliris.Service.Sales.Lib.BusinessLogic.Facades.Spinning
 
             string type = Model.BuyerType.ToLower().Equals("ekspor") || Model.BuyerType.ToLower().Equals("export") ? "SPE" : "SPL";
 
-            var lastData = await this.DbSet.IgnoreQueryFilters().Where(w => w.BuyerType.Equals(Model.BuyerType, StringComparison.OrdinalIgnoreCase)).OrderByDescending(o => o.CreatedUtc).FirstOrDefaultAsync();
+            var lastData = await this.DbSet.IgnoreQueryFilters().Where(w => w.BuyerType.Equals(Model.BuyerType, StringComparison.OrdinalIgnoreCase)&& w.IsDeleted==false).OrderByDescending(o => o.CreatedUtc).FirstOrDefaultAsync();
 
             DateTime Now = DateTime.Now;
             string Year = Now.ToString("yyyy");

@@ -1,12 +1,14 @@
 ﻿using Com.Danliris.Sales.Test.WebApi.Utils;
 using Com.Danliris.Service.Sales.Lib.BusinessLogic.Interface.FinishingPrinting;
 using Com.Danliris.Service.Sales.Lib.Models.FinishingPrinting;
+using Com.Danliris.Service.Sales.Lib.Services;
 using Com.Danliris.Service.Sales.Lib.ViewModels.FinishingPrinting;
 using Com.Danliris.Service.Sales.WebApi.Controllers;
 using Moq;
 using System;
 using System.Collections.Generic;
 using System.Net;
+using Microsoft.Extensions.DependencyInjection;
 using Xunit;
 
 namespace Com.Danliris.Sales.Test.WebApi.Controllers
@@ -33,6 +35,11 @@ namespace Com.Danliris.Sales.Test.WebApi.Controllers
 
             var vm = new FinishingPrintingSalesContractViewModel
             {
+                Agent = new Service.Sales.Lib.ViewModels.IntegrationViewModel.AgentViewModel()
+                {
+                    Id = 1,
+                    Name = "name"
+                },
                 Buyer = new Service.Sales.Lib.ViewModels.IntegrationViewModel.BuyerViewModel
                 {
                     Id = 1,
@@ -76,7 +83,11 @@ namespace Com.Danliris.Sales.Test.WebApi.Controllers
                             Symbol = "c"
                         }
                     }
-                }
+                },
+                Amount = 1,
+                Material = new Service.Sales.Lib.ViewModels.IntegrationViewModel.ProductViewModel(),
+                MaterialConstruction = new Service.Sales.Lib.ViewModels.IntegrationViewModel.MaterialConstructionViewModel(),
+                YarnMaterial = new Service.Sales.Lib.ViewModels.IntegrationViewModel.YarnMaterialViewModel()
             };
 
             mocks.Facade.Setup(x => x.ReadByIdAsync(It.IsAny<int>())).ReturnsAsync(Model);
@@ -96,6 +107,11 @@ namespace Com.Danliris.Sales.Test.WebApi.Controllers
 
             var vm = new FinishingPrintingSalesContractViewModel
             {
+                Agent = new Service.Sales.Lib.ViewModels.IntegrationViewModel.AgentViewModel()
+                {
+                    Id = 1,
+                    Name = "name"
+                },
                 Buyer = new Service.Sales.Lib.ViewModels.IntegrationViewModel.BuyerViewModel
                 {
                     Id = 1,
@@ -139,12 +155,16 @@ namespace Com.Danliris.Sales.Test.WebApi.Controllers
                             Symbol = "c"
                         }
                     }
-                }
+                },
+                Amount = 1,
+                Material = new Service.Sales.Lib.ViewModels.IntegrationViewModel.ProductViewModel(),
+                MaterialConstruction = new Service.Sales.Lib.ViewModels.IntegrationViewModel.MaterialConstructionViewModel(),
+                YarnMaterial = new Service.Sales.Lib.ViewModels.IntegrationViewModel.YarnMaterialViewModel()
             };
 
             mocks.Facade.Setup(x => x.ReadByIdAsync(It.IsAny<int>())).ReturnsAsync(Model);
             mocks.Mapper.Setup(f => f.Map<FinishingPrintingSalesContractViewModel>(It.IsAny<FinishingPrintingSalesContractModel>())).Returns(vm);
-
+            
             var controller = GetController(mocks);
             var response = controller.GetPDF(1).Result;
 

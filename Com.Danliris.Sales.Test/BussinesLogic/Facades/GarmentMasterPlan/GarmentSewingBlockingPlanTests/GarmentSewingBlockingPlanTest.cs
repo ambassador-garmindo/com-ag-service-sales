@@ -4,6 +4,7 @@ using Com.Danliris.Sales.Test.BussinesLogic.DataUtils.GarmentMasterPlan.MaxWHCon
 using Com.Danliris.Sales.Test.BussinesLogic.DataUtils.GarmentMasterPlan.WeeklyPlanDataUtils;
 using Com.Danliris.Sales.Test.BussinesLogic.Utils;
 using Com.Danliris.Service.Sales.Lib;
+using Com.Danliris.Service.Sales.Lib.AutoMapperProfiles.GarmentSewingBlockingPlanProfiles;
 using Com.Danliris.Service.Sales.Lib.BusinessLogic.Facades.GarmentBookingOrderFacade;
 using Com.Danliris.Service.Sales.Lib.BusinessLogic.Facades.GarmentMasterPlan.GarmentSewingBlockingPlanFacades;
 using Com.Danliris.Service.Sales.Lib.BusinessLogic.Facades.GarmentMasterPlan.MaxWHConfirmFacades;
@@ -380,6 +381,22 @@ namespace Com.Danliris.Sales.Test.BussinesLogic.Facades.GarmentMasterPlan.Garmen
 
             var Response = await facade.DeleteAsync((int)data.Id);
             Assert.NotEqual(Response, 0);
+        }
+
+        [Fact]
+        public void Mapping_With_AutoMapper_Profiles()
+        {
+            var configuration = new AutoMapper.MapperConfiguration(cfg =>
+            {
+                cfg.AddProfile<GarmentSewingBlockingPlanMapper>();
+            });
+            var mapper = configuration.CreateMapper();
+
+            GarmentSewingBlockingPlanViewModel vm = new GarmentSewingBlockingPlanViewModel { Id = 1 };
+            GarmentSewingBlockingPlan model = mapper.Map<GarmentSewingBlockingPlan>(vm);
+
+            Assert.Equal(vm.Id, model.Id);
+
         }
     }
 }

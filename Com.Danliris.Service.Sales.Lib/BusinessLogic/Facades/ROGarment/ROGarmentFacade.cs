@@ -1,20 +1,19 @@
-﻿using Com.Danliris.Service.Sales.Lib.BusinessLogic.Interface.ROGarmentInterface;
+﻿using Com.Danliris.Service.Sales.Lib.BusinessLogic.Interface;
+using Com.Danliris.Service.Sales.Lib.BusinessLogic.Interface.CostCalculationGarmentLogic;
+using Com.Danliris.Service.Sales.Lib.BusinessLogic.Interface.ROGarmentInterface;
 using Com.Danliris.Service.Sales.Lib.BusinessLogic.Logic.ROGarmentLogics;
+using Com.Danliris.Service.Sales.Lib.Helpers;
+using Com.Danliris.Service.Sales.Lib.Models.CostCalculationGarments;
 using Com.Danliris.Service.Sales.Lib.Models.ROGarments;
 using Com.Danliris.Service.Sales.Lib.Services;
-using Microsoft.EntityFrameworkCore;
-using System;
-using Microsoft.Extensions.DependencyInjection;
-using System.Collections.Generic;
-using System.Text;
-using Com.Danliris.Service.Sales.Lib.Helpers;
-using System.Threading.Tasks;
-using System.Linq;
 using Com.Danliris.Service.Sales.Lib.Utilities;
-using Com.Danliris.Service.Sales.Lib.Models.CostCalculationGarments;
-using Com.Danliris.Service.Sales.Lib.BusinessLogic.Logic.CostCalculationGarments;
-using Com.Danliris.Service.Sales.Lib.BusinessLogic.Interface.CostCalculationGarmentLogic;
-using Com.Danliris.Service.Sales.Lib.BusinessLogic.Interface;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.DependencyInjection;
+using Newtonsoft.Json;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Threading.Tasks;
 
 namespace Com.Danliris.Service.Sales.Lib.BusinessLogic.Facades.ROGarment
 {
@@ -41,6 +40,11 @@ namespace Com.Danliris.Service.Sales.Lib.BusinessLogic.Facades.ROGarment
             get { return this.ServiceProvider.GetService<IAzureImageFacade>(); }
         }
 
+        private IAzureDocumentFacade AzureDocumentFacade
+        {
+            get { return this.ServiceProvider.GetService<IAzureDocumentFacade>(); }
+        }
+
         public async Task<int> CreateAsync(RO_Garment Model)
         {
             do
@@ -59,13 +63,15 @@ namespace Com.Danliris.Service.Sales.Lib.BusinessLogic.Facades.ROGarment
                         item.Information = itemModel.Information;
                     }
                 }
-            }
+            }   
             Model.CostCalculationGarment = null;
 
-            Model.ImagesPath = await this.AzureImageFacade.UploadMultipleImage(Model.GetType().Name, (int)Model.Id, Model.CreatedUtc, Model.ImagesFile, Model.ImagesPath);
             roGarmentLogic.Create(Model);
             int created = await DbContext.SaveChangesAsync();
-                        
+
+            Model.ImagesPath = await AzureImageFacade.UploadMultipleImage(Model.GetType().Name, (int)Model.Id, Model.CreatedUtc, Model.ImagesFile, Model.ImagesPath);
+            Model.DocumentsPath = await AzureDocumentFacade.UploadMultipleFile(Model.GetType().Name, (int)Model.Id, Model.CreatedUtc, Model.DocumentsFile, Model.DocumentsFileName, Model.DocumentsPath);
+
             await UpdateCostCalAsync(costCalculationGarment, (int)Model.Id);
             return created;
         }
@@ -82,6 +88,7 @@ namespace Com.Danliris.Service.Sales.Lib.BusinessLogic.Facades.ROGarment
         {
             RO_Garment deletedImage = await this.ReadByIdAsync(id);
             await this.AzureImageFacade.RemoveMultipleImage(deletedImage.GetType().Name, deletedImage.ImagesPath);
+            await this.AzureDocumentFacade.RemoveMultipleFile(deletedImage.GetType().Name, deletedImage.DocumentsPath);
 
             await roGarmentLogic.DeleteAsync(id);
             int deleted = await DbContext.SaveChangesAsync();
@@ -123,6 +130,11 @@ namespace Com.Danliris.Service.Sales.Lib.BusinessLogic.Facades.ROGarment
             read.CostCalculationGarment.ImageFile = await this.AzureImageFacade.DownloadImage(read.CostCalculationGarment.GetType().Name, read.CostCalculationGarment.ImagePath);
             read.ImagesFile = await this.AzureImageFacade.DownloadMultipleImages(read.GetType().Name, read.ImagesPath);
 
+            if (!string.IsNullOrWhiteSpace(read.DocumentsPath))
+            {
+                read.DocumentsFile = await AzureDocumentFacade.DownloadMultipleFiles(read.GetType().Name, read.DocumentsPath);
+            }
+
             return read;
         }
 
@@ -132,6 +144,7 @@ namespace Com.Danliris.Service.Sales.Lib.BusinessLogic.Facades.ROGarment
             Model.CostCalculationGarment = null;
 
             Model.ImagesPath = await this.AzureImageFacade.UploadMultipleImage(Model.GetType().Name, (int)Model.Id, Model.CreatedUtc, Model.ImagesFile, Model.ImagesPath);
+            Model.DocumentsPath = await AzureDocumentFacade.UploadMultipleFile(Model.GetType().Name, (int)Model.Id, Model.CreatedUtc, Model.DocumentsFile, Model.DocumentsFileName, Model.DocumentsPath);
 
             roGarmentLogic.UpdateAsync(id,Model);
             int updated = await DbContext.SaveChangesAsync();

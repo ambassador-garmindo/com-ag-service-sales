@@ -1,6 +1,8 @@
-﻿using Com.Danliris.Sales.Test.BussinesLogic.DataUtils.GarmentBookingOrderDataUtils;
+﻿using AutoMapper;
+using Com.Danliris.Sales.Test.BussinesLogic.DataUtils.GarmentBookingOrderDataUtils;
 using Com.Danliris.Sales.Test.BussinesLogic.Utils;
 using Com.Danliris.Service.Sales.Lib;
+using Com.Danliris.Service.Sales.Lib.AutoMapperProfiles.GarmentBookingOrderProfiles;
 using Com.Danliris.Service.Sales.Lib.BusinessLogic.Facades.GarmentBookingOrderFacade;
 using Com.Danliris.Service.Sales.Lib.BusinessLogic.Logic.GarmentBookingOrderLogics;
 using Com.Danliris.Service.Sales.Lib.Models.GarmentBookingOrderModel;
@@ -51,7 +53,7 @@ namespace Com.Danliris.Sales.Test.BussinesLogic.Facades.GarmentBookingOrderFacad
             var serviceProvider = GetServiceProviderMock(dbContext).Object;
             GarmentBookingOrderFacade facade = new GarmentBookingOrderFacade(serviceProvider, dbContext);
             
-            var data = await DataUtil(facade).GetTestData();
+            var data = await DataUtil(facade, dbContext).GetTestData();
 
             var Response = await facade.BOCancel((int)data.Id, data);
             Assert.NotEqual(Response, 0);
@@ -120,7 +122,7 @@ namespace Com.Danliris.Sales.Test.BussinesLogic.Facades.GarmentBookingOrderFacad
                     }
                 }
             };
-            ValidationContext validationContext1 = new ValidationContext(vm, serviceProvider.Object, null);
+            System.ComponentModel.DataAnnotations.ValidationContext validationContext1 = new System.ComponentModel.DataAnnotations.ValidationContext(vm, serviceProvider.Object, null);
             var validationResultCreate1 = vm.Validate(validationContext1).ToList();
             Assert.True(validationResultCreate1.Count() > 0);
 
@@ -135,9 +137,26 @@ namespace Com.Danliris.Sales.Test.BussinesLogic.Facades.GarmentBookingOrderFacad
 
         };
 
-            ValidationContext validationContext = new ValidationContext(vm1, serviceProvider.Object, null);
+            System.ComponentModel.DataAnnotations.ValidationContext validationContext = new System.ComponentModel.DataAnnotations.ValidationContext(vm1, serviceProvider.Object, null);
             var validationResultCreate = vm1.Validate(validationContext).ToList();
             Assert.True(validationResultCreate.Count() > 0);
+
+        }
+
+        [Fact]
+        public void Mapping_With_AutoMapper_Profiles()
+        {
+            var configuration = new MapperConfiguration(cfg =>
+            {
+                cfg.AddProfile<GarmentBookingOrderMapper>();
+                cfg.AddProfile<GarmentBookingOrderItemMapper>();
+            });
+            var mapper = configuration.CreateMapper();
+
+            GarmentBookingOrderViewModel vm = new GarmentBookingOrderViewModel { Id = 1 };
+            GarmentBookingOrder model = mapper.Map<GarmentBookingOrder>(vm);
+
+            Assert.Equal(vm.Id, model.Id);
 
         }
     }

@@ -1,6 +1,7 @@
 ﻿using Com.Danliris.Sales.Test.WebApi.Utils;
 using Com.Danliris.Service.Sales.Lib.BusinessLogic.Interface.GarmentBookingOrderInterface;
 using Com.Danliris.Service.Sales.Lib.Models.GarmentBookingOrderModel;
+using Com.Danliris.Service.Sales.Lib.Utilities;
 using Com.Danliris.Service.Sales.Lib.ViewModels.GarmentBookingOrderViewModels;
 using Com.Danliris.Service.Sales.WebApi.Controllers;
 using Moq;
@@ -120,7 +121,7 @@ namespace Com.Danliris.Sales.Test.WebApi.Controllers
             mocks.Facade
                 .Setup(s => s.CreateAsync(It.IsAny<GarmentBookingOrder>()))
                 .ThrowsAsync(new Exception());
-            
+
             var controller = GetController(mocks);
             var response = await controller.DeleteLeftOvers((int)ViewModel.Id, ViewModel);
 
@@ -187,6 +188,44 @@ namespace Com.Danliris.Sales.Test.WebApi.Controllers
             var response = await controller.Put((int)ViewModel.Id, ViewModel);
 
             Assert.Equal((int)HttpStatusCode.BadRequest, GetStatusCode(response));
+        }
+
+        [Fact]
+        public void Should_Success_GetByNo()
+        {
+
+            var mocks = GetMocks();
+            mocks.Mapper
+                .Setup(s => s.Map<List<GarmentBookingOrderViewModel>>(It.IsAny<List<GarmentBookingOrder>>()))
+                .Returns(new List<GarmentBookingOrderViewModel>());
+            mocks.Facade
+                .Setup(s => s.ReadByBookingOrderNo(It.IsAny<int>(), It.IsAny<int>(), It.IsAny<string>(),
+                    It.IsAny<List<string>>(), It.IsAny<string>(), It.IsAny<string>()))
+                .Returns(new ReadResponse<GarmentBookingOrder>(new List<GarmentBookingOrder>(), 1,new Dictionary<string, string>(),new List<string>()));
+
+            var controller = GetController(mocks);
+            var response = controller.Get(1, 25, new List<string>(), null, null, null);
+
+            Assert.Equal((int)HttpStatusCode.OK, GetStatusCode(response));
+        }
+
+        [Fact]
+        public void Should_Fail_GetByNo()
+        {
+
+            var mocks = GetMocks();
+            mocks.Mapper
+                .Setup(s => s.Map<List<GarmentBookingOrderViewModel>>(It.IsAny<List<GarmentBookingOrder>>()))
+                .Returns(new List<GarmentBookingOrderViewModel>());
+            mocks.Facade
+                .Setup(s => s.ReadByBookingOrderNo(It.IsAny<int>(), It.IsAny<int>(), It.IsAny<string>(),
+                    It.IsAny<List<string>>(), It.IsAny<string>(), It.IsAny<string>()))
+                .Throws(new Exception());
+
+            var controller = GetController(mocks);
+            var response = controller.Get(1, 25, new List<string>(), null, null, null);
+
+            Assert.Equal((int)HttpStatusCode.InternalServerError, GetStatusCode(response));
         }
     }
 }

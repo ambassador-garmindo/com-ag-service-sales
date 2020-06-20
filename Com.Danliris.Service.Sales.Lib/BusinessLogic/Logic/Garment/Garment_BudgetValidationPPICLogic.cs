@@ -47,6 +47,7 @@ namespace Com.Danliris.Service.Sales.Lib.BusinessLogic.Logic.Garment
             var httpClient = serviceProvider.GetService<IHttpClientService>();
 
             var oldGarmentPurchaseRequest = await GetGarmentPurchaseRequestByRONo(costCalculationGarment.RO_Number);
+            oldGarmentPurchaseRequest.IsUsed = false;
             var garmentPurchaseRequest = FillGarmentPurchaseRequest(costCalculationGarment, productDicts);
             //garmentPurchaseRequest.Id = oldGarmentPurchaseRequest.Id;
 
@@ -128,7 +129,7 @@ namespace Com.Danliris.Service.Sales.Lib.BusinessLogic.Logic.Garment
                     Id = Convert.ToInt64(i.CategoryId),
                     Name = i.CategoryName
                 },
-                ProductRemark = $"{i.Description}\n{i.ProductRemark}"
+                ProductRemark = $"{i.Description};\n{i.ProductRemark}"
             }).ToList();
 
             return GarmentPurchaseRequestItems;

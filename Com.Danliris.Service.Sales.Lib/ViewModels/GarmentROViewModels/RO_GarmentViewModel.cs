@@ -17,6 +17,9 @@ namespace Com.Danliris.Service.Sales.Lib.ViewModels.GarmentROViewModels
         public List<string> ImagesFile { get; set; }
         public List<string> ImagesPath { get; set; }
         public List<string> ImagesName { get; set; }
+        public List<string> DocumentsFile { get; set; }
+        public List<string> DocumentsFileName { get; set; }
+        public List<string> DocumentsPath { get; set; }
 
         public bool IsPosted { get; set; }
 
@@ -30,13 +33,50 @@ namespace Com.Danliris.Service.Sales.Lib.ViewModels.GarmentROViewModels
                 yield return new ValidationResult("Instruksi harus diisi", new List<string> { "Instruction" });
             }
 
-            if (ImagesFile.Count.Equals(0))
+            //if (ImagesFile == null || ImagesFile.Count.Equals(0))
+            //{
+            //    yield return new ValidationResult("Gambar harus Ada", new List<string> { "ImageFile" });
+            //}
+
+            //else if (ImagesName.Count.Equals(0) || ImagesName.Count != ImagesFile.Count)
+            //{
+            //    yield return new ValidationResult("Nama Gambar harus diisi", new List<string> { "ImageFile" });
+            //} 
+            //16/06/2020
+
+            if (ImagesFile.Count != 0)
             {
-                yield return new ValidationResult("Gambar harus Ada", new List<string> { "ImageFile" });
+                if (ImagesName.Count.Equals(0) || ImagesName.Count != ImagesFile.Count)
+                {
+                    yield return new ValidationResult("Nama Gambar harus diisi", new List<string> { "ImageFile" });
+                }
             }
-            else if (ImagesName.Count.Equals(0) || ImagesName.Count != ImagesFile.Count)
+            //17/06/2020
+
+            if (DocumentsFileName != null && DocumentsFileName.Count > 0)
             {
-                yield return new ValidationResult("Nama Gambar harus diisi", new List<string> { "ImageFile" });
+                int DocumentsFileErrorCount = 0;
+                string DocumentsFileError = "[";
+
+                foreach (var doc in DocumentsFileName)
+                {
+                    if (string.IsNullOrWhiteSpace(doc))
+                    {
+                        DocumentsFileError += "'Tidak ada file dipilih',";
+                        DocumentsFileErrorCount++;
+                    }
+                    else
+                    {
+                        DocumentsFileError += ",";
+                    }
+                }
+
+                DocumentsFileError += "]";
+
+                if (DocumentsFileErrorCount > 0)
+                {
+                    yield return new ValidationResult(DocumentsFileError, new List<string> { "DocumentsFile" });
+                }
             }
 
             if (this.RO_Garment_SizeBreakdowns == null || this.RO_Garment_SizeBreakdowns.Count == 0)
@@ -62,7 +102,7 @@ namespace Com.Danliris.Service.Sales.Lib.ViewModels.GarmentROViewModels
 
                     error += " { ";
 
-                    if (item.Color == null)
+                    if (item.Color == null || string.IsNullOrWhiteSpace(item.Color.Name))
                     {
                         Count++;
                         error += "Color: 'Color harus diisi', ";

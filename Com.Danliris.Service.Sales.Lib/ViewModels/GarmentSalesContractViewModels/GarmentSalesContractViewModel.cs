@@ -44,6 +44,7 @@ namespace Com.Danliris.Service.Sales.Lib.ViewModels.GarmentSalesContractViewMode
         public bool IsPrinted { get; set; }
         public bool IsWash { get; set; }
         public bool IsTTPayment { get; set; }
+        public bool IsIncludePPN { get; set; } //15-05-2020
         public string PaymentDetail { get; set; }
         public AccountBankViewModel AccountBank { get; set; }
         public bool DocPrinted { get; set; }
@@ -116,20 +117,20 @@ namespace Com.Danliris.Service.Sales.Lib.ViewModels.GarmentSalesContractViewMode
             {
                 int Count = 0;
                 string ItemError = "[";
-                double qtyTotal = 0;
+                //double qtyTotal = 0;
 
-                foreach (GarmentSalesContractItemViewModel item in Items)
-                {
-                    if(item.Quantity > 0)
-                    {
-                        qtyTotal += item.Quantity;
-                    }
-                }
+                //foreach (GarmentSalesContractItemViewModel item in Items)
+                //{
+                //    if(item.Quantity > 0)
+                //    {
+                //        qtyTotal += item.Quantity;
+                //    }
+                //}
 
-                if(Quantity != qtyTotal)
-                {
-                    yield return new ValidationResult("Total Quantity harus sama dengan quantity RO", new List<string> { "TotalQuantity" });
-                }
+                //if(Quantity != qtyTotal)
+                //{
+                //    yield return new ValidationResult("Total Quantity harus sama dengan quantity RO", new List<string> { "TotalQuantity" });
+                //}
 
                 foreach (GarmentSalesContractItemViewModel item in Items)
                 {

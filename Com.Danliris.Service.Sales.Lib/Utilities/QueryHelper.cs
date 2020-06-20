@@ -71,5 +71,21 @@ namespace Com.Danliris.Service.Sales.Lib.Utilities
             }
             return Query;
         }
+
+        /// <summary>
+        /// new(Id, new(ColumnCode as Code, ColumnName as Name) as Column, Items.Select(new (ItemCode as Code, ItemName as Name) as Item) as Items)
+        /// </summary>
+        public static IQueryable Select(IQueryable<TModel> Query, string select)
+        {
+            /* Custom Select */
+            if (!string.IsNullOrWhiteSpace(select))
+            {
+                var SelectedQuery = Query.Select(select);
+                return SelectedQuery;
+            }
+
+            /* Default Select */
+            return Query;
+        }
     }
 }

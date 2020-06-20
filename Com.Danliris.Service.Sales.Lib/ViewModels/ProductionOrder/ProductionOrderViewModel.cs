@@ -234,7 +234,7 @@ namespace Com.Danliris.Service.Sales.Lib.ViewModels.ProductionOrder
                         totalqty += (double)data.Quantity;
                     }
 
-                    if (!this.OrderQuantity.Equals(totalqty))
+                    if (!this.OrderQuantity.Equals(Math.Round(totalqty,3)))
                     {
                         yield return new ValidationResult("OrderQuantity tidak sama", new List<string> { "OrderQuantity" });
                     }

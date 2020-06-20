@@ -2,6 +2,7 @@
 using Com.Danliris.Sales.Test.BussinesLogic.Utils;
 using Com.Danliris.Service.Sales.Lib.BusinessLogic.Facades.CostCalculationGarments;
 using Com.Danliris.Service.Sales.Lib.Models.CostCalculationGarments;
+using Com.Danliris.Service.Sales.Lib.Models.GarmentPreSalesContractModel;
 using System;
 using System.Collections.Generic;
 using System.Text;
@@ -22,10 +23,34 @@ namespace Com.Danliris.Sales.Test.BussinesLogic.DataUtils.Garment.GarmentMerchan
         {
             var garmentPreSalesContractData = await garmentPreSalesContractDataUtil.GetTestData();
 
+            return await GetNewData(garmentPreSalesContractData);
+        }
+
+        public async Task<CostCalculationGarment> GetNewData(GarmentPreSalesContract garmentPreSalesContractData)
+        {
             var data = await base.GetNewData();
             data.Section = "A";
             data.Article = "test";
-            
+            data.ConfirmDate = DateTimeOffset.Now;
+            data.DeliveryDate = DateTimeOffset.Now;
+            data.CreatedUtc = DateTime.Now;
+            data.LeadTime = 25;
+            data.BuyerId = "1";
+            data.BuyerCode = "Test";
+            data.BuyerName = "Text";
+            data.BuyerBrandId = 1;
+            data.BuyerBrandCode = "Test";
+            data.BuyerBrandName = "Test";
+            data.RO_Number = "Test";
+            data.Description = "Test";
+            data.ComodityCode = "Test";
+            data.CommodityDescription = "Test";
+            data.RateValue = 1;
+            data.NETFOBP = 10;
+            data.Quantity = 1;
+            data.ConfirmPrice = 1;
+            data.UOMUnit = "Test";
+            data.SectionName = "FRANSISKA YULIANI";
             data.PreSCId = garmentPreSalesContractData.Id;
             data.PreSCNo = garmentPreSalesContractData.SCNo;
             data.UnitCode = "C2A";
@@ -39,12 +64,34 @@ namespace Com.Danliris.Sales.Test.BussinesLogic.DataUtils.Garment.GarmentMerchan
             data.IsRODistributed = false;
             data.RODistributionBy = "test";
             data.RODistributionDate = DateTimeOffset.Now;
+            data.SMV_Cutting = 1.25;
+            data.SMV_Sewing = 7.54;
+            data.SMV_Finishing = 3.32;
+            data.SMV_Total = 12.11;
+            data.IsApprovedMD = false;
+            data.CreatedBy = "test";
+            data.IsApprovedMD = false;
+            data.IsApprovedIE = false;
+            data.IsApprovedPurchasing = false;
+            data.IsApprovedKadivMD = true;
+            data.IsValidatedROSample = true;
+            data.ApprovedKadivMDBy = "Test";
+            data.ApprovedKadivMDDate = DateTimeOffset.Now;
+            data.ValidationSampleDate = DateTimeOffset.Now;
             data.CostCalculationGarment_Materials = new List<CostCalculationGarment_Material>()
             {
                 new CostCalculationGarment_Material
                 {
                     ProductId = "1",
-                    CategoryName = "FABRIC"
+                    CategoryName = "FABRIC",
+                    Total = 109375,
+                    CM_Price = 172450,
+                    ProductCode = "Test001",
+                    Description = "Test Description",
+                    BudgetQuantity = 1000,
+                    UOMPriceName = "Test Sat",
+                    Price = 10000,
+                    PO_SerialNumber = "Test PO",
                 }
             };
 

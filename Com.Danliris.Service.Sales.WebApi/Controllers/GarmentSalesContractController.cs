@@ -16,6 +16,9 @@ using System.Net.Http;
 using System.Net.Http.Headers;
 using System.Threading.Tasks;
 using Microsoft.Extensions.DependencyInjection;
+using Com.Danliris.Service.Sales.Lib;
+using Com.Danliris.Service.Sales.Lib.Models.CostCalculationGarments;
+using Microsoft.EntityFrameworkCore;
 
 namespace Com.Danliris.Service.Sales.WebApi.Controllers
 {
@@ -27,9 +30,15 @@ namespace Com.Danliris.Service.Sales.WebApi.Controllers
     {
         private readonly IHttpClientService HttpClientService;
         private readonly static string apiVersion = "1.0";
-        public GarmentSalesContractController(IIdentityService identityService, IValidateService validateService, IGarmentSalesContract facade, IMapper mapper, IServiceProvider serviceProvider) : base(identityService, validateService, facade, mapper, apiVersion)
+        private readonly SalesDbContext DbContext;
+        private readonly DbSet<CostCalculationGarment> DbSet;
+
+
+        public GarmentSalesContractController(IIdentityService identityService, SalesDbContext dbContext, IValidateService validateService, IGarmentSalesContract facade, IMapper mapper, IServiceProvider serviceProvider) : base(identityService, validateService, facade, mapper, apiVersion)
         {
             HttpClientService = serviceProvider.GetService<IHttpClientService>();
+            DbContext = dbContext;
+            DbSet = DbContext.Set<CostCalculationGarment>();
         }
 
         [HttpGet("pdf/{Id}")]
@@ -45,6 +54,7 @@ namespace Com.Danliris.Service.Sales.WebApi.Controllers
                 var indexAcceptPdf = Request.Headers["Accept"].ToList().IndexOf("application/pdf");
                 int timeoffsset = Convert.ToInt32(Request.Headers["x-timezone-offset"]);
                 GarmentSalesContract model = await Facade.ReadByIdAsync(Id);
+                
 
                 if (model == null)
                 {
@@ -56,7 +66,6 @@ namespace Com.Danliris.Service.Sales.WebApi.Controllers
                 else
                 {
                     GarmentSalesContractViewModel viewModel = Mapper.Map<GarmentSalesContractViewModel>(model);
-
                     GarmentSalesContractPDFTemplate PdfTemplate = new GarmentSalesContractPDFTemplate();
 
 
@@ -64,7 +73,6 @@ namespace Com.Danliris.Service.Sales.WebApi.Controllers
                     string BuyerBrandUri = "master/garment-buyer-brands";
                     string BankUri = "master/account-banks";
 
-                   
                     /* Get BuyerBrand */
                     var response = HttpClientService.GetAsync($@"{APIEndpoint.Core}{BuyerBrandUri}/" + viewModel.BuyerBrandId).Result.Content.ReadAsStringAsync();
                     Dictionary<string, object> result = JsonConvert.DeserializeObject<Dictionary<string, object>>(response.Result);
@@ -73,7 +81,10 @@ namespace Com.Danliris.Service.Sales.WebApi.Controllers
 
                     Dictionary<string, object> buyers = JsonConvert.DeserializeObject<Dictionary<string, object>>(buyerBrand["Buyers"].ToString());
 
-
+                    /* Get CC */                  
+                    var data = DbContext.CostCalculationGarments.Where(x => x.Id == viewModel.CostCalculationId).FirstOrDefault();
+                    string rate = data.RateId.ToString();
+                    
                     /* Get Buyer */
                     var responseBuyer = HttpClientService.GetAsync($@"{APIEndpoint.Core}{BuyerUri}/" + buyers["Id"]).Result.Content.ReadAsStringAsync();
                     Dictionary<string, object> resultBuyer = JsonConvert.DeserializeObject<Dictionary<string, object>>(responseBuyer.Result);
@@ -86,7 +97,7 @@ namespace Com.Danliris.Service.Sales.WebApi.Controllers
                     var jsonBank = resultBank.Single(p => p.Key.Equals("data")).Value;
                     Dictionary<string, object> bank = JsonConvert.DeserializeObject<Dictionary<string, object>>(jsonBank.ToString());
 
-                    MemoryStream stream = PdfTemplate.GeneratePdfTemplate(viewModel,Facade, timeoffsset, buyer, bank);
+                    MemoryStream stream = PdfTemplate.GeneratePdfTemplate(viewModel,Facade,timeoffsset,buyer,bank,rate);
                    // model.DocPrinted = true;
                    // await Facade.UpdatePrinted(Id, model);
                     return new FileStreamResult(stream, "application/pdf")

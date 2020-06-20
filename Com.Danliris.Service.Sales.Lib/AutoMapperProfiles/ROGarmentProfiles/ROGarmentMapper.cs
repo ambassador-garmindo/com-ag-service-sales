@@ -20,11 +20,15 @@ namespace Com.Danliris.Service.Sales.Lib.AutoMapperProfiles.ROGarmentProfiles
 
             CreateMap<RO_Garment, RO_GarmentViewModel>()
               .ForPath(d => d.ImagesPath, opt => opt.MapFrom(s => JsonConvert.DeserializeObject<List<string>>(s.ImagesPath)))
-              .ForPath(d => d.ImagesName, opt => opt.MapFrom(s => JsonConvert.DeserializeObject<List<string>>(s.ImagesName)));
+              .ForPath(d => d.ImagesName, opt => opt.MapFrom(s => JsonConvert.DeserializeObject<List<string>>(s.ImagesName)))
+              .ForPath(d => d.DocumentsPath, opt => opt.MapFrom(s => JsonConvert.DeserializeObject<List<string>>(s.DocumentsPath)))
+              .ForPath(d => d.DocumentsFileName, opt => opt.MapFrom(s => JsonConvert.DeserializeObject<List<string>>(s.DocumentsFileName)));
 
             CreateMap<RO_GarmentViewModel, RO_Garment>()
               .ForPath(d => d.ImagesPath, opt => opt.MapFrom(s => JsonConvert.SerializeObject(s.ImagesPath)))
-              .ForPath(d => d.ImagesName, opt => opt.MapFrom(s => JsonConvert.SerializeObject(s.ImagesName)));
+              .ForPath(d => d.ImagesName, opt => opt.MapFrom(s => JsonConvert.SerializeObject(s.ImagesName)))
+              .ForPath(d => d.DocumentsPath, opt => opt.MapFrom(s => JsonConvert.SerializeObject(s.DocumentsPath)))
+              .ForPath(d => d.DocumentsFileName, opt => opt.MapFrom(s => JsonConvert.SerializeObject(s.DocumentsFileName)));
         }
     }
 }

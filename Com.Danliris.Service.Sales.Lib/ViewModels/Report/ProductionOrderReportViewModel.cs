@@ -10,6 +10,9 @@ namespace Com.Danliris.Service.Sales.Lib.ViewModels.Report
         public string status { get; set; }
         public string detail { get; set; }
         public string orderNo { get; set; }
+        public string NoSalesContract { get; set; }
+        public double Price { get; set; }
+        public string CurrCode { get; set; }
         public double orderQuantity { get; set; }
         public string orderType { get; set; }
         public string processType { get; set; }

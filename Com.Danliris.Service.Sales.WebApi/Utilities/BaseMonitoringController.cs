@@ -28,6 +28,8 @@ namespace Com.Danliris.Service.Sales.WebApi.Utilities
             {
                 var indexAcceptXls = Request.Headers["Accept"].ToList().IndexOf("application/xls");
                 IdentityService.TimezoneOffset = Convert.ToInt32(Request.Headers["x-timezone-offset"]);
+                IdentityService.Username = User.Claims.ToArray().SingleOrDefault(p => p.Type.Equals("username")).Value;
+                IdentityService.Token = Request.Headers["Authorization"].FirstOrDefault().Replace("Bearer ", "");
 
                 if (indexAcceptXls > -1)
                 {

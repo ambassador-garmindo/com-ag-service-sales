@@ -5,6 +5,7 @@ using Com.Danliris.Service.Sales.Lib.BusinessLogic.Facades.GarmentPreSalesContra
 using Com.Danliris.Service.Sales.Lib.BusinessLogic.Logic.GarmentPreSalesContractLogics;
 using Com.Danliris.Service.Sales.Lib.Models.GarmentPreSalesContractModel;
 using Com.Danliris.Service.Sales.Lib.Services;
+using Microsoft.AspNetCore.JsonPatch;
 using Moq;
 using System;
 using System.Collections.Generic;
@@ -19,6 +20,41 @@ namespace Com.Danliris.Sales.Test.BussinesLogic.Facades.GarmentPreSalesContractT
 
         public GarmentPreSalesContractTest() : base(ENTITY)
         {
+        }
+
+        [Fact]
+        public async void Patch_Success()
+        {
+            var dbContext = DbContext(GetCurrentMethod());
+            var serviceProvider = GetServiceProviderMock(dbContext).Object;
+
+            GarmentPreSalesContractFacade facade = new GarmentPreSalesContractFacade(serviceProvider, dbContext);
+            var data = await DataUtil(facade, dbContext).GetTestData();
+
+            JsonPatchDocument<GarmentPreSalesContract> jsonPatch = new JsonPatchDocument<GarmentPreSalesContract>();
+            jsonPatch.Replace(m => m.IsPosted, true);
+
+            int Response = await facade.Patch(data.Id, jsonPatch);
+            Assert.NotEqual(Response, 0);
+
+            var ResultData = await facade.ReadByIdAsync((int)data.Id);
+            Assert.Equal(ResultData.IsPosted, true);
+        }
+
+        [Fact]
+        public async void Patch_Error()
+        {
+            var dbContext = DbContext(GetCurrentMethod());
+            var serviceProvider = GetServiceProviderMock(dbContext).Object;
+
+            GarmentPreSalesContractFacade facade = new GarmentPreSalesContractFacade(serviceProvider, dbContext);
+            var data = await DataUtil(facade, dbContext).GetTestData();
+
+            JsonPatchDocument<GarmentPreSalesContract> jsonPatch = new JsonPatchDocument<GarmentPreSalesContract>();
+            jsonPatch.Replace(m => m.Id, 0);
+
+            var Response = await Assert.ThrowsAnyAsync<Exception>(async () => await facade.Patch(data.Id, jsonPatch));
+            Assert.NotEqual(Response.Message, null);
         }
 
         [Fact]

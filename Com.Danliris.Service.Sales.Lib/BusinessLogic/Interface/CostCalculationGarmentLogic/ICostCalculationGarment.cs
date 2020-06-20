@@ -1,6 +1,8 @@
 ﻿using Com.Danliris.Service.Sales.Lib.Models.CostCalculationGarments;
 using Com.Danliris.Service.Sales.Lib.Utilities;
 using Com.Danliris.Service.Sales.Lib.Utilities.BaseInterface;
+using Com.Danliris.Service.Sales.Lib.ViewModels.CostCalculationGarment;
+using Microsoft.AspNetCore.JsonPatch;
 using System;
 using System.Collections.Generic;
 using System.Text;
@@ -19,5 +21,11 @@ namespace Com.Danliris.Service.Sales.Lib.BusinessLogic.Interface.CostCalculation
         Task<int> DistributeCC(List<long> listId, string user);
         Task<int> PostCC(List<long> listId);
         Task<int> UnpostCC(long id, string reason);
+        Task<int> Patch(long id, JsonPatchDocument<CostCalculationGarment> jsonPatch);
+        List<string> ReadUnpostReasonCreators(string keyword, int page, int size);
+		CostCalculationGarmentDataProductionReport GetComodityQtyOrderHoursBuyerByRo(string ro_Number);
+        ReadResponse<dynamic> ReadDynamic(int page, int size, string order, string select, string keyword, string filter, string search);
+        ReadResponse<dynamic> ReadMaterials(int page, int size, string order, string select, string keyword, string filter, string search);
+        ReadResponse<dynamic> ReadMaterialsByPRMasterItemIds(int page, int size, string order, string select, string keyword, string filter, string search, string prmasteritemids);
     }
 }

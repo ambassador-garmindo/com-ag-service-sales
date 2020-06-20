@@ -1,8 +1,10 @@
-﻿using Com.Danliris.Sales.Test.BussinesLogic.DataUtils.Garment.GarmentMerchandiser;
+﻿using AutoMapper;
+using Com.Danliris.Sales.Test.BussinesLogic.DataUtils.Garment.GarmentMerchandiser;
 using Com.Danliris.Sales.Test.BussinesLogic.DataUtils.GarmentPreSalesContractDataUtils;
 using Com.Danliris.Sales.Test.BussinesLogic.DataUtils.RoGarmentDataUtils;
 using Com.Danliris.Sales.Test.BussinesLogic.Utils;
 using Com.Danliris.Service.Sales.Lib;
+using Com.Danliris.Service.Sales.Lib.AutoMapperProfiles.ROGarmentProfiles;
 using Com.Danliris.Service.Sales.Lib.BusinessLogic.Facades.CostCalculationGarments;
 using Com.Danliris.Service.Sales.Lib.BusinessLogic.Facades.Garment;
 using Com.Danliris.Service.Sales.Lib.BusinessLogic.Facades.GarmentPreSalesContractFacades;
@@ -17,6 +19,7 @@ using Com.Danliris.Service.Sales.Lib.Helpers;
 using Com.Danliris.Service.Sales.Lib.Models.CostCalculationGarments;
 using Com.Danliris.Service.Sales.Lib.Models.ROGarments;
 using Com.Danliris.Service.Sales.Lib.Services;
+using Com.Danliris.Service.Sales.Lib.ViewModels.GarmentROViewModels;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Diagnostics;
 using Moq;
@@ -122,6 +125,21 @@ namespace Com.Danliris.Sales.Test.BussinesLogic.Facades.ROGarment
             serviceProviderMock
                 .Setup(x => x.GetService(typeof(IAzureImageFacade)))
                 .Returns(azureImageFacadeMock.Object);
+
+            var azureDocumentFacadeMock = new Mock<IAzureDocumentFacade>();
+            azureDocumentFacadeMock
+                .Setup(s => s.DownloadMultipleFiles(It.IsAny<string>(), It.IsAny<string>()))
+                .ReturnsAsync(new List<string> { "[\"test\"]" });
+            azureDocumentFacadeMock
+                .Setup(s => s.UploadMultipleFile(It.IsAny<string>(), It.IsAny<int>(), It.IsAny<DateTime>(), It.IsAny<List<string>>(), It.IsAny<string>(), It.IsAny<string>()))
+                .ReturnsAsync("[\"test\"]");
+            azureDocumentFacadeMock
+                .Setup(s => s.RemoveMultipleFile(It.IsAny<string>(), It.IsAny<string>()))
+                .Returns(Task.FromResult(0));
+
+            serviceProviderMock
+                .Setup(x => x.GetService(typeof(IAzureDocumentFacade)))
+                .Returns(azureDocumentFacadeMock.Object);
 
             ROGarmentSizeBreakdownDetailLogic roGarmentSizeBreakdownDetailLogic = new ROGarmentSizeBreakdownDetailLogic(serviceProviderMock.Object, identityService, dbContext);
             serviceProviderMock
@@ -304,5 +322,22 @@ namespace Com.Danliris.Sales.Test.BussinesLogic.Facades.ROGarment
             await Assert.ThrowsAnyAsync<Exception>(async () => await facade.UnpostRO(0));
         }
 
+        [Fact]
+        public void Mapping_With_AutoMapper_Profiles()
+        {
+            var configuration = new MapperConfiguration(cfg =>
+            {
+                cfg.AddProfile<ROGarmentMapper>();
+                cfg.AddProfile<ROGarmentSizeBreakdownMapper>();
+                cfg.AddProfile<ROGarmentSizeBreakdownDetailMapper>();
+            });
+            var mapper = configuration.CreateMapper();
+
+            RO_GarmentViewModel vm = new RO_GarmentViewModel { Id = 1 };
+            RO_Garment model = mapper.Map<RO_Garment>(vm);
+
+            Assert.Equal(vm.Id, model.Id);
+
+        }
     }
 }

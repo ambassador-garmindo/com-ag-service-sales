@@ -20,6 +20,8 @@ namespace Com.Danliris.Service.Sales.Lib.Models.FinishingPrinting
         public double CurrencyRate { get; set; }
         #endregion
         public double Price { get; set; }
+
+        public decimal ScreenCost { get; set; }
         public bool UseIncomeTax { get; set; }
     }
 }

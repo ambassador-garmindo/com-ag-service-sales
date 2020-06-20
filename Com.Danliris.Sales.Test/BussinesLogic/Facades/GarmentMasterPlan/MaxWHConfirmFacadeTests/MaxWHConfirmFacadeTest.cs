@@ -13,7 +13,10 @@ using System.Diagnostics;
 using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Text;
+using AutoMapper;
 using Xunit;
+using Com.Danliris.Service.Sales.Lib.AutoMapperProfiles.GarmentMasterPlanProfiles;
+using Com.Danliris.Service.Sales.Lib.Models.GarmentMasterPlan.MaxWHConfirmModel;
 
 namespace Com.Danliris.Sales.Test.BussinesLogic.Facades.GarmentMasterPlan.MaxWHConfirmFacadeTests
 {
@@ -138,6 +141,22 @@ namespace Com.Danliris.Sales.Test.BussinesLogic.Facades.GarmentMasterPlan.MaxWHC
             var Response = facade.ReadByIdAsync((int)data.Id);
 
             Assert.NotEqual(Response.Id, 0);
+        }
+
+        [Fact]
+        public void Mapping_With_AutoMapper_Profiles()
+        {
+            var configuration = new MapperConfiguration(cfg =>
+            {
+                cfg.AddProfile<MaxWHConfirmProfile>();
+            });
+            var mapper = configuration.CreateMapper();
+
+            MaxWHConfirmViewModel vm = new MaxWHConfirmViewModel { Id = 1 };
+            MaxWHConfirm model = mapper.Map<MaxWHConfirm>(vm);
+
+            Assert.Equal(vm.Id, model.Id);
+
         }
     }
 }

@@ -40,9 +40,9 @@ namespace Com.Danliris.Service.Sales.Lib.BusinessLogic.Facades.Garment
                         .FirstOrDefault(m => m.Id == CostCalculationGarment.Id);
 
                     EntityExtension.FlagForUpdate(model, IdentityService.Username, "sales-service");
-                    //model.IsValidatedROPPIC = true;
-                    //model.ValidationPPICDate = model.LastModifiedUtc;
-                    //model.ValidationPPICBy = model.LastModifiedBy;
+                    model.IsApprovedKadivMD = true;
+                    model.ApprovedKadivMDDate = model.LastModifiedUtc;
+                    model.ApprovedKadivMDBy = model.LastModifiedBy;
                     model.IsApprovedPPIC = true;
                     model.ApprovedPPICDate = model.LastModifiedUtc;
                     model.ApprovedPPICBy = model.LastModifiedBy;

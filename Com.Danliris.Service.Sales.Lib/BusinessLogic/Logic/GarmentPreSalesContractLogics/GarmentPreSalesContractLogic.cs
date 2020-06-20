@@ -4,6 +4,7 @@ using Com.Danliris.Service.Sales.Lib.Utilities;
 using Com.Danliris.Service.Sales.Lib.Utilities.BaseClass;
 using Com.Moonlay.Models;
 using Com.Moonlay.NetCore.Lib;
+using Microsoft.AspNetCore.JsonPatch;
 using Microsoft.EntityFrameworkCore;
 using Newtonsoft.Json;
 using System;
@@ -73,6 +74,16 @@ namespace Com.Danliris.Service.Sales.Lib.BusinessLogic.Logic.GarmentPreSalesCont
             return new ReadResponse<GarmentPreSalesContract>(data, totalData, OrderDictionary, SelectedFields);
         }
 
+        internal void Patch(long id, JsonPatchDocument<GarmentPreSalesContract> jsonPatch)
+        {
+            var data = DbSet.Where(d => d.Id == id)
+                .Single();
+
+            EntityExtension.FlagForUpdate(data, IdentityService.Username, "sales-service");
+
+            jsonPatch.ApplyTo(data);
+        }
+
         public override void Create(GarmentPreSalesContract model)
         {
             GenerateNo(model);
@@ -89,7 +100,7 @@ namespace Com.Danliris.Service.Sales.Lib.BusinessLogic.Logic.GarmentPreSalesCont
             string no = $"SC-{model.SectionCode}-{model.BuyerBrandCode}-{Year}-";
             int Padding = 5;
 
-            var lastData = DbSet.IgnoreQueryFilters().Where(w => w.SCNo.StartsWith(no) && !w.IsDeleted).OrderByDescending(o => o.CreatedUtc).FirstOrDefault();
+            var lastData = DbSet.IgnoreQueryFilters().Where(w => w.SCNo.StartsWith(no) && w.SCType == model.SCType && !w.IsDeleted).OrderByDescending(o => o.CreatedUtc).FirstOrDefault();
 
             //string DocumentType = model.BuyerType.ToLower().Equals("ekspor") || model.BuyerType.ToLower().Equals("export") ? "FPE" : "FPL";
 

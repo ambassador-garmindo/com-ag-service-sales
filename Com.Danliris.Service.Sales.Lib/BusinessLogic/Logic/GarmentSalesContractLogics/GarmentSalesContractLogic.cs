@@ -30,7 +30,7 @@ namespace Com.Danliris.Service.Sales.Lib.BusinessLogic.Logic.GarmentSalesContrac
 
             List<string> SearchAttributes = new List<string>()
             {
-                "SalesContractNo", "RONumber", "Article", "Comodity","BuyerName"
+                "SalesContractNo", "RONumber", "Article", "ComodityCode", "ComodityName", "BuyerBrandName", "BuyerBrandCode"
             };
 
             Query = QueryHelper<GarmentSalesContract>.Search(Query, SearchAttributes, keyword);
@@ -40,31 +40,31 @@ namespace Com.Danliris.Service.Sales.Lib.BusinessLogic.Logic.GarmentSalesContrac
 
             List<string> SelectedFields = new List<string>()
             {
-                "Id", "BuyerBrandName", "BuyerBrandCode", "SalesContractNo", "LastModifiedUtc","CreatedUtc","ComodityCode","ComodityName","Article","RONumber"
+                "Id", "BuyerBrandName", "BuyerBrandCode", "SalesContractNo", "LastModifiedUtc", "CreatedUtc", "ComodityCode", "ComodityName", "Article", "RONumber"
             };
 
             Query = Query
                 .Select(sc => new GarmentSalesContract
                 {
                     Id = sc.Id,
-                    RONumber=sc.RONumber,
+                    RONumber = sc.RONumber,
                     SalesContractNo = sc.SalesContractNo,
                     BuyerBrandCode = sc.BuyerBrandCode,
                     BuyerBrandId = sc.BuyerBrandId,
                     BuyerBrandName = sc.BuyerBrandName,
                     CreatedUtc = sc.CreatedUtc,
                     LastModifiedUtc = sc.LastModifiedUtc,
-                    AccountBankId=sc.AccountBankId,
-                    AccountBankName=sc.AccountBankName,
-                    AccountName=sc.AccountName,
-                    Amount=sc.Amount,
-                    IsDeleted=sc.IsDeleted,
-                    IsEmbrodiary=sc.IsEmbrodiary,
-                    ComodityCode=sc.ComodityCode,
+                    AccountBankId = sc.AccountBankId,
+                    AccountBankName = sc.AccountBankName,
+                    AccountName = sc.AccountName,
+                    Amount = sc.Amount,
+                    IsDeleted = sc.IsDeleted,
+                    IsEmbrodiary = sc.IsEmbrodiary,
+                    ComodityCode = sc.ComodityCode,
                     ComodityName = sc.ComodityName,
-                    Article =sc.Article,
-                    DocPrinted=sc.DocPrinted
-                }).OrderByDescending(s=>s.LastModifiedUtc);
+                    Article = sc.Article,
+                    DocPrinted = sc.DocPrinted
+                }).OrderByDescending(s => s.LastModifiedUtc);
 
             Dictionary<string, string> OrderDictionary = JsonConvert.DeserializeObject<Dictionary<string, string>>(order);
             Query = QueryHelper<GarmentSalesContract>.Order(Query, OrderDictionary);
@@ -76,10 +76,10 @@ namespace Com.Danliris.Service.Sales.Lib.BusinessLogic.Logic.GarmentSalesContrac
             return new ReadResponse<GarmentSalesContract>(data, totalData, OrderDictionary, SelectedFields);
         }
 
-        public  override void Create(GarmentSalesContract model)
+        public override void Create(GarmentSalesContract model)
         {
             GenerateNo(model);
-            if(model.Items.Count>0)
+            if (model.Items.Count > 0)
                 foreach (var detail in model.Items)
                 {
                     GarmentSalesContractItemLogic.Create(detail);
@@ -99,8 +99,8 @@ namespace Com.Danliris.Service.Sales.Lib.BusinessLogic.Logic.GarmentSalesContrac
 
         public GarmentSalesContract ReadByCostCal(int id)
         {
-            var garmentSalesContract =  DbSet.Where(d => d.CostCalculationId.Equals(id) && d.IsDeleted.Equals(false)).FirstOrDefault();
-            
+            var garmentSalesContract = DbSet.Where(d => d.CostCalculationId.Equals(id) && d.IsDeleted.Equals(false)).FirstOrDefault();
+
             return garmentSalesContract;
         }
 
@@ -136,7 +136,7 @@ namespace Com.Danliris.Service.Sales.Lib.BusinessLogic.Logic.GarmentSalesContrac
                             GarmentSalesContractItem dataItem = DbContext.GarmentSalesContractItems.FirstOrDefault(prop => prop.Id.Equals(itemId));
                             EntityExtension.FlagForDelete(dataItem, IdentityService.Username, "sales-service");
                         }
-                            //await GarmentSalesContractItemLogic.DeleteAsync(itemId);
+                        //await GarmentSalesContractItemLogic.DeleteAsync(itemId);
                         else
                         {
                             //GarmentSalesContractItem dataItem = DbContext.GarmentSalesContractItems.FirstOrDefault(prop => prop.Id.Equals(itemId));
@@ -152,7 +152,7 @@ namespace Com.Danliris.Service.Sales.Lib.BusinessLogic.Logic.GarmentSalesContrac
                     }
 
                 }
-                
+
             }
 
             EntityExtension.FlagForUpdate(model, IdentityService.Username, "sales-service");
@@ -177,10 +177,10 @@ namespace Com.Danliris.Service.Sales.Lib.BusinessLogic.Logic.GarmentSalesContrac
             string Year = model.CreatedUtc.ToString("yy");
             string Month = model.CreatedUtc.ToString("MM");
 
-            string no = $"{model.ComodityCode}/SC/DL/{Year}";
+            string no = $"{model.ComodityCode}/SC/AG/{Year}";
             int Padding = 5;
 
-            var lastData = DbSet.IgnoreQueryFilters().Where(w=>w.SalesContractNo.StartsWith(no) && !w.IsDeleted).OrderByDescending(o => o.CreatedUtc).FirstOrDefault();
+            var lastData = DbSet.IgnoreQueryFilters().Where(w => w.SalesContractNo.StartsWith(no) && !w.IsDeleted).OrderByDescending(o => o.CreatedUtc).FirstOrDefault();
 
             //string DocumentType = model.BuyerType.ToLower().Equals("ekspor") || model.BuyerType.ToLower().Equals("export") ? "FPE" : "FPL";
 
@@ -196,8 +196,9 @@ namespace Com.Danliris.Service.Sales.Lib.BusinessLogic.Logic.GarmentSalesContrac
                 int lastNoNumber = Int32.Parse(lastData.SalesContractNo.Replace(no, "")) + 1;
                 model.SalesContractNo = no + lastNoNumber.ToString().PadLeft(Padding, '0');
             }
-            
+
         }
+
 
         //async Task<string> GenerateNo(GarmentSalesContract model)
         //{

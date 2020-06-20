@@ -7,6 +7,19 @@ namespace Com.Danliris.Service.Sales.Lib.Models.FinishingPrinting
 {
     public class FinishingPrintingSalesContractModel : BaseModel
     {
+        #region newSC
+        public DateTimeOffset Date { get; set; }
+
+        public long CostCalculationId { get; set; }
+
+        [MaxLength(64)]
+        public string ProductionOrderNo { get; set; }
+
+        [MaxLength(512)]
+        public string UnitName { get; set; }
+
+        #endregion
+
         #region Account Bank
         public string AccountBankAccountName { get; set; }
         public int AccountBankID { get; set; }

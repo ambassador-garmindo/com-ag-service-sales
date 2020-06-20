@@ -11,6 +11,10 @@ using System.Collections.Generic;
 using System.Text;
 using Xunit;
 
+using Com.Danliris.Service.Sales.Lib.AutoMapperProfiles.FinishingPrintingProfiles;
+using Com.Danliris.Service.Sales.Lib.ViewModels.FinishingPrinting;
+using AutoMapper;
+
 namespace Com.Danliris.Sales.Test.BussinesLogic.Facades.FinishingPrintingSalesContract
 {
     public class FinishingPrintingSalesContractFacadeTest : BaseFacadeTest<SalesDbContext, FinishingPrintingSalesContractFacade, FinishingPrintingSalesContractLogic, FinishingPrintingSalesContractModel, FinisihingPrintingSalesContractDataUtil>
@@ -31,7 +35,7 @@ namespace Com.Danliris.Sales.Test.BussinesLogic.Facades.FinishingPrintingSalesCo
                 .Returns(identityService);
 
             var finishingprintingDetailLogic = new FinishingPrintingSalesContractDetailLogic(serviceProviderMock.Object, identityService, dbContext);
-            var finishingprintingLogic = new FinishingPrintingSalesContractLogic(finishingprintingDetailLogic,serviceProviderMock.Object, identityService, dbContext);
+            var finishingprintingLogic = new FinishingPrintingSalesContractLogic(finishingprintingDetailLogic, serviceProviderMock.Object, identityService, dbContext);
 
             serviceProviderMock
                 .Setup(x => x.GetService(typeof(FinishingPrintingSalesContractLogic)))
@@ -54,6 +58,23 @@ namespace Com.Danliris.Sales.Test.BussinesLogic.Facades.FinishingPrintingSalesCo
             var response = await facade.CreateAsync(data);
 
             Assert.NotEqual(response, 0);
+        }
+
+        [Fact]
+        public void Mapping_With_AutoMapper_Profiles()
+        {
+            var configuration = new MapperConfiguration(cfg =>
+            {
+                cfg.AddProfile<FinishingSalesContractMapper>();
+                cfg.AddProfile<FinishingPrintingSalesContractDetailMapper>();
+            });
+            var mapper = configuration.CreateMapper();
+
+            FinishingPrintingSalesContractViewModel vm = new FinishingPrintingSalesContractViewModel { Id = 1 };
+            FinishingPrintingSalesContractModel model = mapper.Map<FinishingPrintingSalesContractModel>(vm);
+
+            Assert.Equal(vm.Id, model.Id);
+
         }
     }
 }

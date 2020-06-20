@@ -4,14 +4,17 @@ using Com.Danliris.Service.Sales.Lib.Models.CostCalculationGarments;
 using Com.Danliris.Service.Sales.Lib.Services;
 using Com.Danliris.Service.Sales.Lib.Utilities;
 using Com.Danliris.Service.Sales.Lib.Utilities.BaseClass;
+using Com.Danliris.Service.Sales.Lib.ViewModels.CostCalculationGarment;
 using Com.Moonlay.Models;
 using Com.Moonlay.NetCore.Lib;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.JsonPatch;
 using Microsoft.EntityFrameworkCore;
 using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Linq.Dynamic.Core;
 using System.Net;
 using System.Net.Http;
 using System.Net.Http.Headers;
@@ -42,32 +45,32 @@ namespace Com.Danliris.Service.Sales.Lib.BusinessLogic.Logic.CostCalculationGarm
 
 			Query = QueryHelper<CostCalculationGarment>.Search(Query, SearchAttributes, keyword);
 
-            var checkAllUser = false;
-
             Dictionary<string, object> FilterDictionary = JsonConvert.DeserializeObject<Dictionary<string, object>>(filter);
 
-            if (FilterDictionary.ContainsKey("AllUser"))
-            {
-                try
-                {
-                    checkAllUser = (bool)FilterDictionary.GetValueOrDefault("AllUser");
-                }
-                catch (Exception) { }
-                FilterDictionary.Remove("AllUser");
-            }
+            //var checkAllUser = false;
 
-            if (!checkAllUser)
-            {
-                Query = Query.Where(w => w.CreatedBy == IdentityService.Username);
-            }
+            //if (FilterDictionary.ContainsKey("AllUser"))
+            //{
+            //    try
+            //    {
+            //        checkAllUser = (bool)FilterDictionary.GetValueOrDefault("AllUser");
+            //    }
+            //    catch (Exception) { }
+            //    FilterDictionary.Remove("AllUser");
+            //}
+
+            //if (!checkAllUser)
+            //{
+            //    Query = Query.Where(w => w.CreatedBy == IdentityService.Username);
+            //}
 
             Query = QueryHelper<CostCalculationGarment>.Filter(Query, FilterDictionary);
 
             List<string> SelectedFields = new List<string>()
             {
                   "Id", "Code", "PreSCNo", "RO_Number", "Quantity", "ConfirmPrice", "Article", "Unit", "LastModifiedUtc","UnitName",
-                    "Comodity", "UOM", "Buyer", "DeliveryDate", "BuyerBrand", "ApprovalMD", "ApprovalPurchasing", "ApprovalIE", "ApprovalPPIC",
-                    "IsPosted"
+                    "Comodity", "UOM", "Buyer", "DeliveryDate", "BuyerBrand", "ApprovalMD", "ApprovalPurchasing", "ApprovalIE", "ApprovalKadivMD", "ApprovalPPIC",
+                    "IsPosted","SectionName"
             };
 
             Query = Query
@@ -102,12 +105,14 @@ namespace Com.Danliris.Service.Sales.Lib.BusinessLogic.Logic.CostCalculationGarm
                      IsApprovedMD = ccg.IsApprovedMD,
                      IsApprovedPurchasing = ccg.IsApprovedPurchasing,
                      IsApprovedIE = ccg.IsApprovedIE,
+                     IsApprovedKadivMD = ccg.IsApprovedKadivMD,
                      IsApprovedPPIC = ccg.IsApprovedPPIC,
 
                      IsPosted = ccg.IsPosted,
 
                      LastModifiedUtc = ccg.LastModifiedUtc,
-				 });
+                     SectionName = ccg.SectionName
+                 });
 
 			Dictionary<string, string> OrderDictionary = JsonConvert.DeserializeObject<Dictionary<string, string>>(order);
 			Query = QueryHelper<CostCalculationGarment>.Order(Query, OrderDictionary);
@@ -279,6 +284,16 @@ namespace Com.Danliris.Service.Sales.Lib.BusinessLogic.Logic.CostCalculationGarm
             }
         }
 
+        internal void Patch(long id, JsonPatchDocument<CostCalculationGarment> jsonPatch)
+        {
+            var data = DbSet.Where(d => d.Id == id)
+                .Single();
+
+            EntityExtension.FlagForUpdate(data, IdentityService.Username, "sales-service");
+
+            jsonPatch.ApplyTo(data);
+        }
+
         public ReadResponse<CostCalculationGarment> ReadForROAcceptance(int page, int size, string order, List<string> select, string keyword, string filter)
         {
             IQueryable<CostCalculationGarment> Query = DbSet;
@@ -339,6 +354,39 @@ namespace Com.Danliris.Service.Sales.Lib.BusinessLogic.Logic.CostCalculationGarm
             int totalData = pageable.TotalCount;
 
             return new ReadResponse<CostCalculationGarment>(data, totalData, OrderDictionary, SelectedFields);
+        }
+
+        internal ReadResponse<dynamic> ReadDynamic(int page, int size, string order, string select, string keyword, string filter, string search)
+        {
+            IQueryable<CostCalculationGarment> Query = DbSet;
+
+            List<string> SearchAttributes = JsonConvert.DeserializeObject<List<string>>(search);
+            if (SearchAttributes.Count < 1)
+            {
+                SearchAttributes = new List<string>() { "Code", "RO_Number", "Article" };
+            }
+            Query = QueryHelper<CostCalculationGarment>.Search(Query, SearchAttributes, keyword);
+
+            Dictionary<string, object> FilterDictionary = JsonConvert.DeserializeObject<Dictionary<string, object>>(filter);
+            Query = QueryHelper<CostCalculationGarment>.Filter(Query, FilterDictionary);
+
+            Dictionary<string, string> OrderDictionary = JsonConvert.DeserializeObject<Dictionary<string, string>>(order);
+            Query = QueryHelper<CostCalculationGarment>.Order(Query, OrderDictionary);
+
+            IQueryable SelectedQuery = Query;
+            if (!string.IsNullOrWhiteSpace(select))
+            {
+                SelectedQuery = QueryHelper<CostCalculationGarment>.Select(Query, select);
+            }
+
+            int totalData = SelectedQuery.Count();
+
+            List<dynamic> Data = SelectedQuery
+                .Skip((page - 1) * size)
+                .Take(size)
+                .ToDynamicList();
+
+            return new ReadResponse<dynamic>(Data, totalData, OrderDictionary, new List<string>());
         }
 
         public ReadResponse<CostCalculationGarment> ReadForROAvailable(int page, int size, string order, List<string> select, string keyword, string filter)
@@ -482,6 +530,7 @@ namespace Com.Danliris.Service.Sales.Lib.BusinessLogic.Logic.CostCalculationGarm
             model.IsApprovedMD = false;
             model.IsApprovedPurchasing = false;
             model.IsApprovedIE = false;
+            model.IsApprovedKadivMD = false;
             model.IsApprovedPPIC = false;
             EntityExtension.FlagForUpdate(model, IdentityService.Username, "sales-service");
         }
@@ -498,6 +547,35 @@ namespace Com.Danliris.Service.Sales.Lib.BusinessLogic.Logic.CostCalculationGarm
             };
             EntityExtension.FlagForCreate(costCalculationGarmentUnpostReason, IdentityService.Username, "sales-service");
             reasonDbSet.Add(costCalculationGarmentUnpostReason);
+        }
+
+		internal CostCalculationGarmentDataProductionReport GetComodityQtyOrderHoursBuyerByRo(string ro)
+		{
+			CostCalculationGarmentDataProductionReport costCalculationGarmentDataProductionReport = new CostCalculationGarmentDataProductionReport();
+			var costCalculation = DbSet.Single(m => m.RO_Number == ro);
+			costCalculationGarmentDataProductionReport.ro = costCalculation.RO_Number;
+			costCalculationGarmentDataProductionReport.buyerCode = costCalculation.BuyerCode;
+			costCalculationGarmentDataProductionReport.hours = costCalculation.SMV_Cutting;
+			costCalculationGarmentDataProductionReport.comodityName = costCalculation.Commodity;
+			costCalculationGarmentDataProductionReport.qtyOrder = costCalculation.Quantity;
+			return costCalculationGarmentDataProductionReport;
+		}
+		internal List<string> ReadUnpostReasonCreators(string keyword, int page, int size)
+        {
+            IQueryable<CostCalculationGarmentUnpostReason> Query = DbContext.Set<CostCalculationGarmentUnpostReason>();
+
+            if (keyword != null)
+            {
+                Query = Query.Where(w => w.CreatedBy.StartsWith(keyword));
+            }
+
+            return Query
+                .OrderBy(o => o.CreatedBy)
+                .Select(s => s.CreatedBy)
+                .Distinct()
+                .Skip((page - 1) * size)
+                .Take(size)
+                .ToList();
         }
     }
 }

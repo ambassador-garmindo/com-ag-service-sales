@@ -20,10 +20,15 @@ namespace Com.Danliris.Service.Sales.Lib.Models.ROGarments
         public string Instruction { get; set; }
         public int Total { get; set; }
         public List<string> ImagesFile { get; set; }
+        public List<string> DocumentsFile { get; set; }
         [MaxLength(1000)]
         public string ImagesPath { get; set; }
+        [MaxLength(1000)]
+        public string DocumentsPath { get; set; }
         [MaxLength(255)]
         public string ImagesName { get; set; }
+        [MaxLength(255)]
+        public string DocumentsFileName { get; set; }
 
         public bool IsPosted { get; set; }
     }

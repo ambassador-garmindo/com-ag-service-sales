@@ -121,12 +121,25 @@ namespace Com.Danliris.Service.Sales.Lib.Models.CostCalculationGarments
         [MaxLength(50)]
         public string ApprovedIEBy { get; set; }
 
+        public bool IsApprovedKadivMD { get; set; }
+        public DateTimeOffset ApprovedKadivMDDate { get; set; }
+        [MaxLength(50)]
+        public string ApprovedKadivMDBy { get; set; }
+
         public bool IsApprovedPPIC { get; set; }
         public DateTimeOffset ApprovedPPICDate { get; set; }
         [MaxLength(50)]
         public string ApprovedPPICBy { get; set; }
 
         public bool IsValidatedROSample { get; set; }
+        public DateTimeOffset ValidationSampleDate { get; set; }
+        [MaxLength(50)]
+        public string ValidationSampleBy { get; set; }
+
+        public bool IsValidatedROMD { get; set; }
+        public DateTimeOffset ValidationMDDate { get; set; }
+        [MaxLength(50)]
+        public string ValidationMDBy { get; set; }
 
         public bool IsValidatedROPPIC { get; set; }
         public DateTimeOffset ValidationPPICDate { get; set; }

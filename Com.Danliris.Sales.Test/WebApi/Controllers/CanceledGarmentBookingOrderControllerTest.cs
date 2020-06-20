@@ -96,5 +96,20 @@ namespace Com.Danliris.Sales.Test.WebApi.Controllers
 
             Assert.Equal((int)HttpStatusCode.InternalServerError, statusCode);
         }
+
+        [Fact]
+        public void Get_Accept_Xls_Exception_ReturnInternalServerError()
+        {
+            var mocks = this.GetMocks();
+            mocks.Facade.Setup(f => f.GenerateExcel(null, null, null, null, null, It.IsAny<int>()))
+                .Throws(new Exception());
+
+            var controller = GetController(mocks);
+            controller.ControllerContext.HttpContext.Request.Headers["Accept"] = "application/xls";
+
+            var response = controller.GetXlsAll(null, null, null, null, null);
+            int statusCode = this.GetStatusCode(response);
+            Assert.Equal((int)HttpStatusCode.InternalServerError, statusCode);
+        }
     }
 }

@@ -21,6 +21,7 @@ using Com.Danliris.Service.Sales.Lib.BusinessLogic.Interface.CostCalculationGarm
 using Com.Danliris.Service.Sales.Lib.BusinessLogic.Logic.GarmentPreSalesContractLogics;
 using System.Linq;
 using Com.Moonlay.Models;
+using Microsoft.AspNetCore.JsonPatch;
 
 namespace Com.Danliris.Service.Sales.Lib.BusinessLogic.Facades.GarmentPreSalesContractFacades
 {
@@ -67,6 +68,28 @@ namespace Com.Danliris.Service.Sales.Lib.BusinessLogic.Facades.GarmentPreSalesCo
         {
             await garmentPreSalesContractLogic.DeleteAsync(id);
             return await DbContext.SaveChangesAsync();
+        }
+
+        public async Task<int> Patch(long id, JsonPatchDocument<GarmentPreSalesContract> jsonPatch)
+        {
+            int Updated = 0;
+
+            using (var transaction = DbContext.Database.BeginTransaction())
+            {
+                try
+                {
+                    garmentPreSalesContractLogic.Patch(id, jsonPatch);
+                    Updated = await DbContext.SaveChangesAsync();
+                    transaction.Commit();
+                }
+                catch (Exception e)
+                {
+                    transaction.Rollback();
+                    throw e;
+                }
+            }
+
+            return Updated;
         }
 
         public async Task<int> PreSalesPost(List<long> listId, string user)

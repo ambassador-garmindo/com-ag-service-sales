@@ -1,4 +1,5 @@
 ﻿using Com.Danliris.Sales.Test.WebApi.Utils;
+using Com.Danliris.Service.Sales.Lib.AutoMapperProfiles;
 using Com.Danliris.Service.Sales.Lib.BusinessLogic.Interface;
 using Com.Danliris.Service.Sales.Lib.Models;
 using Com.Danliris.Service.Sales.Lib.Utilities;
@@ -45,6 +46,20 @@ namespace Com.Danliris.Sales.Test.WebApi.Controllers
 
             var filledValidationResult = filledViewModel.Validate(validationContext);
             Assert.True(filledValidationResult.Count() > 0);
+        }
+
+        [Fact]
+        public void Mapping_With_AutoMapper_Profiles()
+        {
+            var configuration = new AutoMapper.MapperConfiguration(cfg => {
+                cfg.AddProfile<RateMapper>();
+            });
+            var mapper = configuration.CreateMapper();
+
+            Rate rate = new Rate { Id = 1 };
+            RateViewModel rateViewModel = mapper.Map<RateViewModel>(rate);
+
+            Assert.Equal(rate.Id, rateViewModel.Id);
         }
     }
 }

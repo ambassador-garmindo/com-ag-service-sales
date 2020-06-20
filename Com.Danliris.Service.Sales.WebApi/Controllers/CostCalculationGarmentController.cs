@@ -33,6 +33,53 @@ namespace Com.Danliris.Service.Sales.WebApi.Controllers
 		{
 			Service = identityService;
 		}
+
+        [HttpGet("dynamic")]
+        public IActionResult GetDynamic(int page = 1, int size = 25, string order = "{}", string select = null, string keyword = null, string filter = "{}", string search = "[]")
+        {
+            try
+            {
+                ValidateUser();
+
+                ReadResponse<dynamic> read = Facade.ReadDynamic(page, size, order, select, keyword, filter, search);
+
+                Dictionary<string, object> Result =
+                    new ResultFormatter(ApiVersion, Common.OK_STATUS_CODE, Common.OK_MESSAGE)
+                    .Ok(Mapper, read.Data, page, size, read.Count, read.Data.Count, read.Order, read.Selected);
+                return Ok(Result);
+            }
+            catch (Exception e)
+            {
+                Dictionary<string, object> Result =
+                    new ResultFormatter(ApiVersion, Common.INTERNAL_ERROR_STATUS_CODE, e.Message)
+                    .Fail();
+                return StatusCode(Common.INTERNAL_ERROR_STATUS_CODE, Result);
+            }
+        }
+
+        [HttpGet("materials/dynamic")]
+        public IActionResult GetMaterials(int page = 1, int size = 25, string order = "{}", string select = null, string keyword = null, string filter = "{}", string search = "[]")
+        {
+            try
+            {
+                ValidateUser();
+
+                ReadResponse<dynamic> read = Facade.ReadMaterials(page, size, order, select, keyword, filter, search);
+
+                Dictionary<string, object> Result =
+                    new ResultFormatter(ApiVersion, Common.OK_STATUS_CODE, Common.OK_MESSAGE)
+                    .Ok(Mapper, read.Data, page, size, read.Count, read.Data.Count, read.Order, read.Selected);
+                return Ok(Result);
+            }
+            catch (Exception e)
+            {
+                Dictionary<string, object> Result =
+                    new ResultFormatter(ApiVersion, Common.INTERNAL_ERROR_STATUS_CODE, e.Message)
+                    .Fail();
+                return StatusCode(Common.INTERNAL_ERROR_STATUS_CODE, Result);
+            }
+        }
+
 		[HttpGet("pdf/{id}")]
 		public async Task<IActionResult> GetPDF([FromRoute]int Id)
 		{
@@ -64,7 +111,7 @@ namespace Com.Danliris.Service.Sales.WebApi.Controllers
 
 					return new FileStreamResult(stream, "application/pdf")
 					{
-						FileDownloadName = "Cost Calculation Export Garment " + viewModel.RO_Number + ".pdf"
+						FileDownloadName = "Cost Calculation Garment " + viewModel.RO_Number + ".pdf"
 					};
 
 				}
@@ -97,7 +144,7 @@ namespace Com.Danliris.Service.Sales.WebApi.Controllers
 
 				return new FileStreamResult(stream, "application/pdf")
 				{
-					FileDownloadName = "Budget Export Garment " + viewModel.RO_Number + ".pdf"
+					FileDownloadName = "Budget Garment " + viewModel.RO_Number + ".pdf"
 				};
 			}
 			catch (Exception e)
@@ -178,11 +225,9 @@ namespace Com.Danliris.Service.Sales.WebApi.Controllers
                 }
                 else
                 {
-                    patch.ApplyTo(model);
-
                     ValidateUser();
 
-                    await Facade.UpdateAsync(id, model);
+                    await Facade.Patch(id, patch);
 
                     return NoContent();
                 }
@@ -412,6 +457,72 @@ namespace Com.Danliris.Service.Sales.WebApi.Controllers
 
                 await Facade.UnpostCC(id, reason);
                 return NoContent();
+            }
+            catch (Exception e)
+            {
+                Dictionary<string, object> Result =
+                    new ResultFormatter(ApiVersion, Common.INTERNAL_ERROR_STATUS_CODE, e.Message)
+                    .Fail();
+                return StatusCode(Common.INTERNAL_ERROR_STATUS_CODE, Result);
+            }
+        }
+
+        [HttpGet("unpost-reason-creators")]
+        public IActionResult ReadUnpostReasonCreators(string keyword = "", int page = 1, int size = 25)
+        {
+            try
+            {
+                List<string> creators = Facade.ReadUnpostReasonCreators(keyword, page, size);
+
+                Dictionary<string, object> Result =
+                    new ResultFormatter(ApiVersion, Common.OK_STATUS_CODE, Common.OK_MESSAGE)
+                    .Ok(creators);
+                return Ok(Result);
+
+            }
+            catch (Exception e)
+            {
+                Dictionary<string, object> Result =
+                    new ResultFormatter(ApiVersion, Common.INTERNAL_ERROR_STATUS_CODE, e.Message)
+                    .Fail();
+                return StatusCode(Common.INTERNAL_ERROR_STATUS_CODE, Result);
+            }
+        }
+		[HttpGet("data/{ro}")]
+		public IActionResult GetComodityQtyOrderHoursBuyerByRo(string ro)
+		{
+			try
+			{
+				var indexAcceptPdf = Request.Headers["Accept"].ToList().IndexOf("application/pdf");
+				var viewModel = Facade.GetComodityQtyOrderHoursBuyerByRo(ro);
+				Dictionary<string, object> Result =
+				new ResultFormatter(ApiVersion, Common.OK_STATUS_CODE, Common.OK_MESSAGE)
+				.Ok(viewModel);
+				return Ok(Result);
+
+			}
+			catch (Exception e)
+			{
+				Dictionary<string, object> Result =
+					new ResultFormatter(ApiVersion, Common.INTERNAL_ERROR_STATUS_CODE, e.Message)
+					.Fail();
+				return StatusCode(Common.INTERNAL_ERROR_STATUS_CODE, Result);
+			}
+		}
+
+        [HttpGet("materials/by-prmasteritemids")]
+        public IActionResult GetMaterialsByPRMasterItemIds(int page = 1, int size = 25, string order = "{}", string select = null, string keyword = null, string filter = "{}", string search = "[]", string prmasteritemids = "[]")
+        {
+            try
+            {
+                ValidateUser();
+
+                ReadResponse<dynamic> read = Facade.ReadMaterialsByPRMasterItemIds(page, size, order, select, keyword, filter, search, prmasteritemids);
+
+                Dictionary<string, object> Result =
+                    new ResultFormatter(ApiVersion, Common.OK_STATUS_CODE, Common.OK_MESSAGE)
+                    .Ok(Mapper, read.Data, page, size, read.Count, read.Data.Count, read.Order, read.Selected);
+                return Ok(Result);
             }
             catch (Exception e)
             {

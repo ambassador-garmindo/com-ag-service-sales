@@ -13,21 +13,24 @@ namespace Com.Danliris.Sales.Test
 
         public Task<HttpResponseMessage> PutAsync(string url, HttpContent content)
         {
-            return Task.Run(() => new HttpResponseMessage() {
+            return Task.Run(() => new HttpResponseMessage()
+            {
                 StatusCode = System.Net.HttpStatusCode.OK
             });
         }
         public Task<HttpResponseMessage> GetAsync(string url)
         {
-            return Task.Run(() => new HttpResponseMessage() {
+            return Task.Run(() => new HttpResponseMessage()
+            {
                 StatusCode = System.Net.HttpStatusCode.OK,
-                Content = new StringContent("{data:{'data':'data'}}")
+                Content = new StringContent("{data:{'data':'data', 'Buyers':{'Id':1}, 'Address' :'ad', 'BankAddress':'ad', 'SwiftCode':'ad', 'BankName':'ad'}}")
             });
         }
 
         public Task<HttpResponseMessage> PostAsync(string url, HttpContent content)
         {
-            return Task.Run(() => new HttpResponseMessage() {
+            return Task.Run(() => new HttpResponseMessage()
+            {
                 StatusCode = System.Net.HttpStatusCode.Created
             });
         }
