@@ -7,6 +7,8 @@ namespace Com.Danliris.Service.Sales.Lib.ViewModels.GarmentROViewModels
 {
     public class RO_Garment_SizeBreakdownViewModel : BaseViewModel
     {
+        public int SizeBreakdownIndex { get; set; }
+
         public string Code { get; set; }
         public ArticleColorViewModel Color { get; set; }
         public List<RO_Garment_SizeBreakdown_DetailViewModel> RO_Garment_SizeBreakdown_Details { get; set; }

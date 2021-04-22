@@ -38,7 +38,7 @@ namespace Com.Danliris.Service.Sales.Lib.BusinessLogic.Facades.CostCalculationGa
 
 		public async Task<CostCalculationGarment> CustomCodeGenerator(CostCalculationGarment Model)
 		{
-			List<string> convectionOption = new List<string> { "C2A", "C2B", "C2C", "C1A", "C1B" };
+			List<string> convectionOption = new List<string> { "AG2", "C2A", "C2B", "C2C", "C1A", "C1B" };
 			int convectionCode = convectionOption.IndexOf(Model.UnitCode) + 1;
 
 			var lastData = await this.DbSet.Where(w => w.IsDeleted == false && w.UnitCode == Model.UnitCode).OrderByDescending(o => o.CreatedUtc).FirstOrDefaultAsync();
@@ -50,7 +50,7 @@ namespace Com.Danliris.Service.Sales.Lib.BusinessLogic.Facades.CostCalculationGa
 			{
 				Model.AutoIncrementNumber = 1;
 				string Number = Model.AutoIncrementNumber.ToString().PadLeft(4, '0');
-				Model.RO_Number = $"{Year}{convectionCode.ToString()}{Number}";
+				Model.RO_Number = $"AG{Year}{convectionCode.ToString()}{Number}";
 			}
 			else
 			{
@@ -58,13 +58,13 @@ namespace Com.Danliris.Service.Sales.Lib.BusinessLogic.Facades.CostCalculationGa
 				{
 					Model.AutoIncrementNumber = 1;
 					string Number = Model.AutoIncrementNumber.ToString().PadLeft(4, '0');
-					Model.RO_Number = $"{Year}{convectionCode.ToString()}{Number}";
+					Model.RO_Number = $"AG{Year}{convectionCode.ToString()}{Number}";
 				}
 				else
 				{
 					Model.AutoIncrementNumber = lastData.AutoIncrementNumber + 1;
 					string Number = Model.AutoIncrementNumber.ToString().PadLeft(4, '0');
-					Model.RO_Number = $"{Year}{convectionCode.ToString()}{Number}";
+					Model.RO_Number = $"AG{Year}{convectionCode.ToString()}{Number}";
 				}
 			}
 
@@ -353,7 +353,7 @@ namespace Com.Danliris.Service.Sales.Lib.BusinessLogic.Facades.CostCalculationGa
             }
             return Updated;
         }
-		public CostCalculationGarmentDataProductionReport GetComodityQtyOrderHoursBuyerByRo(string ro)
+		public List<CostCalculationGarmentDataProductionReport> GetComodityQtyOrderHoursBuyerByRo(string ro)
 		{
 			return costCalculationGarmentLogic.GetComodityQtyOrderHoursBuyerByRo(ro);
 

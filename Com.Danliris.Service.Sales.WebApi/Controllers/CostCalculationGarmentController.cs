@@ -488,8 +488,8 @@ namespace Com.Danliris.Service.Sales.WebApi.Controllers
                 return StatusCode(Common.INTERNAL_ERROR_STATUS_CODE, Result);
             }
         }
-		[HttpGet("data/{ro}")]
-		public IActionResult GetComodityQtyOrderHoursBuyerByRo(string ro)
+		[HttpGet("data")]
+		public IActionResult GetComodityQtyOrderHoursBuyerByRo([FromBody]string ro)
 		{
 			try
 			{

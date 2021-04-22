@@ -127,6 +127,12 @@ namespace Com.Danliris.Service.Sales.Lib.BusinessLogic.Facades.ROGarment
                     .ThenInclude(ccg => ccg.CostCalculationGarment_Materials)
                 .FirstOrDefaultAsync();
 
+            read.RO_Garment_SizeBreakdowns = read.RO_Garment_SizeBreakdowns.OrderBy(o => o.SizeBreakdownIndex).ToList();
+            foreach (var sizeBreakdown in read.RO_Garment_SizeBreakdowns)
+            {
+                sizeBreakdown.RO_Garment_SizeBreakdown_Details = sizeBreakdown.RO_Garment_SizeBreakdown_Details.OrderBy(o => o.SizeBreakdownDetailIndex).ToList();
+            }
+
             read.CostCalculationGarment.ImageFile = await this.AzureImageFacade.DownloadImage(read.CostCalculationGarment.GetType().Name, read.CostCalculationGarment.ImagePath);
             read.ImagesFile = await this.AzureImageFacade.DownloadMultipleImages(read.GetType().Name, read.ImagesPath);
 

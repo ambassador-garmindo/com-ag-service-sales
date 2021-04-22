@@ -10,6 +10,8 @@ namespace Com.Danliris.Service.Sales.Lib.Models.ROGarments
 {
     public class RO_Garment_SizeBreakdown : BaseModel
     {
+        public int SizeBreakdownIndex { get; set; }
+
         public long RO_GarmentId { get; set; }
         [ForeignKey("RO_GarmentId")]
         public virtual RO_Garment RO_Garment { get; set; }

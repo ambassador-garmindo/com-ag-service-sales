@@ -56,6 +56,8 @@ namespace Com.Danliris.Service.Sales.Lib.BusinessLogic.Logic.ROGarmentLogics
                          BuyerName = ccg.BuyerName,
                          BuyerBrandCode = ccg.BuyerBrandCode,
                          BuyerBrandName = ccg.BuyerBrandName,
+                         ValidationMDDate = ccg.ValidationMDDate,
+                         ValidationSampleDate = ccg.ValidationSampleDate,
                          UnitCode = ccg.UnitCode,
                          UnitName = ccg.UnitName,
                          Quantity = ccg.Quantity,
